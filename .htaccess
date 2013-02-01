@@ -1,0 +1,57 @@
+# stop by default directories listing
+Options -Indexes
+
+RewriteEngine On
+
+#RewriteBase /
+
+# Block out any script trying to base64_encode data within the URL.
+RewriteCond %{QUERY_STRING} base64_encode[^(]*\([^)]*\) [OR]
+# Block out any script that includes a <script> tag in URL.
+RewriteCond %{QUERY_STRING} (<|%3C)([^s]*s)+cript.*(>|%3E) [NC,OR]
+# Block out any script trying to set a PHP GLOBALS variable via URL.
+RewriteCond %{QUERY_STRING} GLOBALS(=|\[|\%[0-9A-Z]{0,2}) [OR]
+# Block out any script trying to modify a _REQUEST variable via URL.
+RewriteCond %{QUERY_STRING} _REQUEST(=|\[|\%[0-9A-Z]{0,2})
+# Return 403 Forbidden header and show the content of the root homepage
+RewriteRule .* index.php [F]
+
+# add / of url end
+RewriteRule ^/cp$ cp/ [L]
+RewriteRule admin$ %{REQUEST_URI}/ [R=301,L]
+
+# Redirect to control panel
+RewriteRule ^admin/?(.*)$ cp/$1 [L]
+
+# Secure cms folder
+RewriteRule ^.*/?cms/+basic/+scripts/+(.*)$ cms/basic/scripts/$1 [L]
+RewriteRule ^.*/?cms/+scripts/+(.*)$ cms/scripts/$1 [L]
+
+# Lock next rule
+RewriteRule ^([^\./]+)\.php(.*)$ $1.php?%{QUERY_STRING} [L]
+
+# Lock for scripts after language in url without cp/ (en/index.php?_capcha_=mycapcha)
+RewriteCond %{REQUEST_FILENAME} !/cp
+RewriteRule ^([^/\.]+)/([^/]+)\.php(.*)$ $2.php?%{QUERY_STRING}&language=$1[L]
+
+# Allow access to robots file
+RewriteRule ^robots.txt robots.txt [L]
+
+# Allow access to sitemap file
+RewriteRule ^sitemap.xml sitemap.xml [L]
+
+# Fix skip language in url. For exp: http://sbnd.net/en/upload/article/3245645.jpg 
+RewriteCond %{REQUEST_FILENAME} !/cp
+RewriteRule ^[^/]+/(themes|upload|services|plugins)/(.+)$ $1/$2 [L]
+
+# check for language changing
+RewriteCond %{REQUEST_FILENAME} !/cp
+RewriteRule ^([^/\.]+)/?$ index.php?language=$1 [L]
+
+# Unlock public folders and run in url friendly mode
+RewriteCond %{REQUEST_FILENAME} !/cp
+RewriteCond %{REQUEST_FILENAME} !/themes
+RewriteCond %{REQUEST_FILENAME} !/upload
+RewriteCond %{REQUEST_FILENAME} !/services
+RewriteCond %{REQUEST_FILENAME} !/plugins
+RewriteRule ^([^\./]+)/([^/]+)/?(.*)$ index.php?_rewrite_=$3/%{QUERY_STRING}&script_name=$2&language=$1 [L]

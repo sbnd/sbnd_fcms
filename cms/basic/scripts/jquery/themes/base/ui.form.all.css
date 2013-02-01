@@ -1,0 +1,106 @@
+.ui-state-selected {
+	background: #ACD4F2;
+	border: 1px solid #54A7E6;
+}
+
+.ui-state-highlight-selected {
+	background: #D8EAF9;
+	border: 1px solid #80BDEC;
+}
+
+.ui-state-selected a {
+	
+}
+
+/* Multy Combo */
+.ui-form-combo {
+	width: 300px;
+	padding: 0.2em;
+	overflow: auto;
+}
+
+.ui-form-combo-filterbar {
+	height: 20px;
+	text-align: justify;
+	padding: 0px 5px;
+	font-size: 11px;
+	margin-bottom: 1px;
+	position: relative;
+}
+
+.ui-form-combo-filterbar a {
+	text-decoration: none;
+	font-weight: bold;
+	line-height: 20px;
+	vertical-align: middle;
+}
+
+.ui-form-combo-filterbar input {
+	font-size: 7pt;
+	position: absolute;
+	right: 2px;
+	top: 1px;
+	width: 80px;
+}
+
+.ui-form-combo-selectbar {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+}
+
+.ui-form-combo-selectbar li {
+	line-height: 15px;
+	padding: 1px 5px;
+	margin: 1px 0 1px 0;
+	display: block;
+	border: 1px solid #F2F2F2;
+}
+
+.ui-form-combo-selectbar li span {
+	margin: 0 0 10px 4px;
+}
+
+.ui-form-combo-selectbar li img {
+	vertical-align: middle;
+}
+
+/* end Multy Combo */ /* Multy ComboBox */
+.ui-form-combobox {
+	width: 300px;
+	padding: 1px 0.2em;
+	line-height: 20px;
+	position: relative;
+}
+
+.ui-form-combobox-open {
+	height: 16px;
+	padding: 1px;
+	position: absolute;
+	right: 0.1em;
+	top: 1px;
+	width: 19px;
+}
+
+.ui-form-combobox-open span {
+	display: block;
+	margin: 2px 1px 0 2px
+}
+
+.ui-form-combobox input {
+	width: 276px;
+	border: 0px;
+}
+
+.ui-form-combobox-write {
+	
+}
+
+.ui-form-combobox-write input {
+	width: 300px;
+}
+
+.ui-form-combobox-write .ui-form-combobox-open {
+	display: none;
+}
+/* end Multy ComboBox */
