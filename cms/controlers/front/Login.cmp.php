@@ -22,15 +22,12 @@
 * @version 7.0.4
 */
 
-
 /**
- * 
- * 
- * Login class
+ * Client Login class
  * 
  * @author Evgeni Baldzhiyski
+ * @version 1.1
  * @package cms.controlers.front
- * 
  */
 class Login extends CmsComponent implements BuilderComponentLoginInterface{
 	
@@ -105,6 +102,7 @@ class Login extends CmsComponent implements BuilderComponentLoginInterface{
 			'perm' => true,
 			'attributes' => array(
 				'tabindex' => 1,
+				'autocomplete' => 'off',
 				'class'	=> 'input-small span3',
 				'placeholder' => BASIC_LANGUAGE::init()->get('email')
 			)
@@ -115,6 +113,7 @@ class Login extends CmsComponent implements BuilderComponentLoginInterface{
 			'perm' => true,
 			'attributes' => array(
 				'tabindex' => 2,
+				'autocomplete' => 'off',
 				'class'	=> 'input-small span3',
 				'placeholder' => BASIC_LANGUAGE::init()->get('password')
 			),
@@ -207,6 +206,11 @@ class Login extends CmsComponent implements BuilderComponentLoginInterface{
 			
 			return parent::ActionFormAdd();
 		}
+	}
+	function FORM_MANAGER($form_attribute = array()){
+		return parent::FORM_MANAGER(array(
+			'autocomplete' => 'off'
+		));
 	}
 	/**
 	 * 

@@ -31,7 +31,7 @@
  * By default "template_list" == Builder::init()->baseTemplate
  * 
  * @author Evgeni Baldzhiyski
- * @version 1.4
+ * @version 1.5
  * @since 01.09.2011
  * @package cms.controlers.back
  */
@@ -133,6 +133,9 @@ class Access extends CmsComponent implements BuilderComponentLoginInterface{
 			$this->setField('email', array(
 				'text' => BASIC_LANGUAGE::init()->get(BASIC_USERS::init()->name_column),
 				'perm' => '*',
+				'attributes' => array(
+					'autocomplete' => 'off'
+				),
 				'messages' => array(
 					2 => BASIC_LANGUAGE::init()->get('invalid_email_format'),
 					3 => BASIC_LANGUAGE::init()->get('not_existing_email'),
@@ -144,6 +147,9 @@ class Access extends CmsComponent implements BuilderComponentLoginInterface{
 				'text' => BASIC_LANGUAGE::init()->get(BASIC_USERS::init()->pass_column),
 				'formtype' => 'password',
 				'perm' => '*',
+				'attributes' => array(
+					'autocomplete' => 'off'
+				),
 				'messages' => array(
 					2 => BASIC_LANGUAGE::init()->get('not_valid_data'),
 					3 => BASIC_LANGUAGE::init()->get('not_have_permitions'),
@@ -160,6 +166,9 @@ class Access extends CmsComponent implements BuilderComponentLoginInterface{
 			$this->setField('email', array(
 				'text' => BASIC_LANGUAGE::init()->get('email'),
 				'perm' => '*',
+				'attributes' => array(
+					'autocomplete' => 'off'
+				),
 				'messages' => array(
 					2 => BASIC_LANGUAGE::init()->get('invalid_email_format'),
 					3 => BASIC_LANGUAGE::init()->get('not_existing_email'),
@@ -171,12 +180,18 @@ class Access extends CmsComponent implements BuilderComponentLoginInterface{
 		}else{ //activate password mode
 			$this->setField('code', array(
 			//	'formtype' => 'hidden',
+				'attributes' => array(
+					'autocomplete' => 'off'
+				),
 				'default' => BASIC_URL::init()->request('code', 'charAdd')
 			));
 			$this->setField('pass', array(
 				'text' => BASIC_LANGUAGE::init()->get(BASIC_USERS::init()->pass_column),
 				'formtype' => 'password',
 				'perm' => '*',
+				'attributes' => array(
+					'autocomplete' => 'off'
+				),
 			    'messages' => array(
 	        		2 => BASIC_LANGUAGE::init()->get('invalid_password')
 	        	)
@@ -185,6 +200,9 @@ class Access extends CmsComponent implements BuilderComponentLoginInterface{
 				'text' => BASIC_LANGUAGE::init()->get('_'.BASIC_USERS::init()->pass_column),
 				'formtype' => 'password',
 				'perm' => '*',
+				'attributes' => array(
+					'autocomplete' => 'off'
+				),
 	        	'messages' => array(
 	        		2 => BASIC_LANGUAGE::init()->get('not_match_pass')
 	         	)
@@ -283,6 +301,11 @@ class Access extends CmsComponent implements BuilderComponentLoginInterface{
 			));
 			return parent::ActionFormAdd();
 		}
+	}
+	function FORM_MANAGER($form_attribute = array()){
+		return parent::FORM_MANAGER(array(
+			'autocomplete' => 'off'
+		));
 	}
 	/**
 	 * Extends parent method ActionSave() depending on run mode and different fields for each mode
