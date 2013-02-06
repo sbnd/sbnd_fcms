@@ -555,9 +555,14 @@ interface MailApiInterface{
  * 
  * Mail class
  * 
+ * ChangeLog:
+ * change protected $LE = "\r\n" with PHP_EOL - The system's new line format (\n for Linux, \r\n for Windows, etc)
+ * 
  * @author Evgeni Baldzhiyski
- * @version 1.2
- * @since 13.09.2011
+ * @version 1.3
+ * @since 05.02.2013
+ * 
+ * 
  */
 class BasicMail implements MailApiInterface{
 	
@@ -589,7 +594,7 @@ class BasicMail implements MailApiInterface{
 	 * @var string
 	 * @access private
 	 */
-	protected $LE = "\r\n";
+	protected $LE = PHP_EOL;
 	/**
 	 * 
 	 * From data
