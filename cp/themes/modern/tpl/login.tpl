@@ -8,11 +8,6 @@ $(document).ready(function(){
 	});	
 });
 </script>
-<style>
-.logintooltip {
-	top:-100px !important;
-}
-</style>
 <label>${fields.email.label}</label>
 	<div class="frmwrap">
 		${fields.email.ctrl}
