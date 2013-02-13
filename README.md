@@ -1,12 +1,13 @@
-![SBND F&CMS](http://fcms.sbnd.net/upload/logo.png) 
-### Framework and Content Management System for PHP developers
-
+<a href="http://fcms.sbnd.net">
+  <img src="http://fcms.sbnd.net/upload/logo.png">
+</a>
+# [Framework and Content Management System <br />for PHP developers](http://fcms.sbnd.net) 
 
 
 SBND F&CMS is a modern object oriented PHP based framework that would be very helpful for programmers with OOP knowledge. However, the CMS (Content Management System) part brings many benefits to people without any programming skills.
 
 
-### Some of SBND F&CMS advantages: 
+## Some of SBND F&CMS advantages:
 
 **- Fast Custom Programing.**
 Allows you to build and register your own components with custom functionality within minutes.
@@ -45,7 +46,7 @@ The downloaded instance is ready for future SEO activities. It takes care of man
 
 =========
 
-### Ready-to-use Components
+## Ready-to-use Components:
 
 
 =========
@@ -71,7 +72,7 @@ Get:
 **"FlashPlayer"** Component from [https://github.com/sbnd/sbnd_fcms_flashplayer](https://github.com/sbnd/sbnd_fcms_flashplayer)
 
 
-### Get started
+## Get started
  
 **Match system requirements**
 
@@ -93,24 +94,24 @@ Get:
 8. Set full permissions '777' for folders tmp and upload
 
 
-### Documentation
+## Documentation
 
+File structure - [http://fcms.sbnd.net/en/documentation/file-structure/](http://fcms.sbnd.net/en/documentation/file-structure/)
 
-**File structure** - [http://fcms.sbnd.net/en/documentation/file-structure/](http://fcms.sbnd.net/en/documentation/file-structure/)
+Class Reference - [http://fcms.sbnd.net/en/docs/index.html](http://fcms.sbnd.net/en/docs/index.html)
 
-**Class Reference** - [http://fcms.sbnd.net/en/docs/index.html](http://fcms.sbnd.net/en/docs/index.html)
-
-**How to Work With the Admin** - [http://fcms.sbnd.net/en/documentation/how-to-work-with-the-admin/]
+How to Work With the Admin - [http://fcms.sbnd.net/en/documentation/how-to-work-with-the-admin/]
 (http://fcms.sbnd.net/en/documentation/how-to-work-with-the-admin/)
 
-**Create Simple Contact Form** - [http://fcms.sbnd.net/en/documentation/create-simple-contact-form/](http://fcms.sbnd.net/en/documentation/create-simple-contact-form/)
+Create Simple Contact Form - [http://fcms.sbnd.net/en/documentation/create-simple-contact-form/](http://fcms.sbnd.net/en/documentation/create-simple-contact-form/)
 
-**How to Create a Custom Component** - [http://fcms.sbnd.net/en/documentation/how-to-create-a-custom-component/](http://fcms.sbnd.net/en/documentation/how-to-create-a-custom-component/)
+How to Create a Custom Component - [http://fcms.sbnd.net/en/documentation/how-to-create-a-custom-component/](http://fcms.sbnd.net/en/documentation/how-to-create-a-custom-component/)
 
-**How To Extend Page Component** - [http://fcms.sbnd.net/en/documentation/how-to-extend-page-component/](http://fcms.sbnd.net/en/documentation/how-to-extend-page-component/)
+How To Extend Page Component - [http://fcms.sbnd.net/en/documentation/how-to-extend-page-component/](http://fcms.sbnd.net/en/documentation/how-to-extend-page-component/)
 
-**How to Use Exception and Mobile Theme** - [http://fcms.sbnd.net/en/documentation/how-to-use-exception-and-mobile-theme/](http://fcms.sbnd.net/en/documentation/how-to-use-exception-and-mobile-theme/)
+How to Use Exception and Mobile Theme - [http://fcms.sbnd.net/en/documentation/how-to-use-exception-and-mobile-theme/](http://fcms.sbnd.net/en/documentation/how-to-use-exception-and-mobile-theme/)
 
 =========
 
-**For more information: [http://fcms.sbnd.net/](http://fcms.sbnd.net/)** 
+
+**For more information: [http://fcms.sbnd.net/](http://fcms.sbnd.net/)**
