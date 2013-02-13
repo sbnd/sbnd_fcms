@@ -5,7 +5,7 @@
 
 
 SBND F&CMS is a modern object oriented PHP based framework that would be very helpful for programmers with OOP knowledge. However, the CMS (Content Management System) part brings many benefits to people without any programming skills.
-
+<br /><br />
 
 ## Some of SBND F&CMS advantages:
 
@@ -113,5 +113,5 @@ How to Use Exception and Mobile Theme - [http://fcms.sbnd.net/en/documentation/h
 
 =========
 
-
+<br />
 **For more information: [http://fcms.sbnd.net/](http://fcms.sbnd.net/)**
