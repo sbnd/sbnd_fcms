@@ -1,0 +1,3 @@
+<!-- foreach(${actions},action) -->
+	<button name="${cmd}<!-- if(${is_ie7}) -->${action.key}<!-- end -->" value="${action.key}" <!-- if(${action.rule_type}) -->onclick="<!-- if(${action.rule_type} == 'rule') -->${action.rule_text}<!-- else -->return FormActionManager.go(this, '${action.rule_type}', '${action.rule_text}')<!-- end -->"<!-- end --> class="cmd_btn btn ${action.key}<!-- if(${action.key} == 'save') --> btn-primary<!-- end --><!-- if(${action.disable}) --> disabled<!-- end -->" type="submit"<!-- if(${action.disable}) --> disabled="disabled"<!-- end -->>${action.text}</button>
+<!-- end -->
