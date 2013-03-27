@@ -1,5 +1,5 @@
 <!-- template(cmp-form-language-bar.tpl) -->
-<form class="form-horizontal">
+<div class="form-horizontal">
 	<!-- foreach(${fields},field) -->
 	<div class="control-group">
 		<label class="control-label" for="inputEmail"><!-- if(${field.perm}) --><span>${field.perm}</span><!-- end -->${field.label}</label>
@@ -20,4 +20,4 @@
 			<!-- template(cmp-form-action-bar.tpl,${buttons_bar}) -->
 		</div>
 	</div>
-</form>
+</div>
