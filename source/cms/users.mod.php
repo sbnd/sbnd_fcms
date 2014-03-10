@@ -2,7 +2,7 @@
 /**
 * SBND F&CMS - Framework & CMS for PHP developers
 *
-* Copyright (C) 1999 - 2013, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
+* Copyright (C) 1999 - 2014, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 *
 * @author SBND Techologies Ltd <info@sbnd.net>
 * @package cms.users
-* @version 7.0.4
+* @version 7.0.6
 */
 
 BASIC::init()->imported('users.mod');
@@ -29,7 +29,7 @@ BASIC::init()->imported('settings.mod', 'cms');
  * Expand BASIC_USERS class with additional methods: refresh()  
  * 
  * @author Evgeni Baldzhiyski
- * @version 0.1
+ * @version 0.2
  * @since 26.10.2012
  * @package cms.users
  */

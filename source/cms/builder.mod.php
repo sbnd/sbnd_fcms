@@ -2,7 +2,7 @@
 /**
 * SBND F&CMS - Framework & CMS for PHP developers
 *
-* Copyright (C) 1999 - 2013, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
+* Copyright (C) 1999 - 2014, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 *
 * @author SBND Techologies Ltd <info@sbnd.net>
 * @package cms.builder
-* @version 7.0.4
+* @version 7.0.6
 */
 
 
@@ -291,7 +291,8 @@ class BuilderComponent implements BuilderComponentInterface {
 			}
 			if($level || (!$level && !$reg = $cache->cacheArray('all_'.BASIC_LANGUAGE::init()->current()))){
 				$rdr = BASIC_SQL::init()->read_exec(" SELECT * FROM `".$this->container."` WHERE 1=1 AND `_parent_self` = ".(int)$parent_self." ");
-						
+
+				BASIC_ERROR::init()->reset();
 				$err = BASIC_ERROR::init()->error();
 				if($err['code'] == 1146){				
 					BASIC_SQL::init()->createTable('id', $this->container, "
@@ -308,28 +309,48 @@ class BuilderComponent implements BuilderComponentInterface {
 						 KEY `_parent_self` (`_parent_self`),
 						 KEY `order_id` (`order_id`)
 					");
-					BASIC_SQL::init()->createTable('id', $this->group_container, "
+					if(BASIC_SQL::init()->createTable('id', $this->group_container, "
 						`name` varchar(255) NOT NULL DEFAULT '',
 						`_parent_self` int(11) NOT NULL DEFAULT '0',
 						`order_id` int(11) NOT NULL DEFAULT '0',
 						 KEY `_parent_self` (`_parent_self`),
 						 KEY `order_id` (`order_id`)
-					");
-					BASIC_ERROR::init()->clean();
-					return array();
+					")){
+						BASIC_ERROR::init()->clean();
+						return array();
+					}
+				}else if($err['code'] == 1054){
+					preg_match("/column( name)? '([^']+)'/", $err['message'], $match);
+					if(isset($match[2])){
+						$spl = explode(".", $match[2]);
+						$column_name = $spl[count($spl) - 1];
+						
+						if(BASIC_SQL::init()->createColumn($this->container, $this->_selectBuilder($column_name))){	
+							BASIC_ERROR::init()->clean();
+							return $this->_buildRegister($parent_self, $level);
+						}
+					}
+					return null;
 				}
 				
 				$reg = array();
 				while ($rdr->read()){
+					$prefix = $rdr->item('name');
 					/**
 					 * Convert commponent settings from URL to array format
 					 */
 					if($rdr->item('cmp_settings')){
-						$rdr->setItem('cmp_settings', unserialize($rdr->item('cmp_settings')));
+						$settings = unserialize($rdr->item('cmp_settings'));
+						
+						$rdr->setItem('cmp_settings', $settings);
+						
+						if(isset($settings['prefix'])){
+							$prefix = $settings['prefix'];
+						}
 					}else{
 						$rdr->setItem('cmp_settings', array());
 					}
-					$reg[] = array(
+					$reg[$rdr->item('name')] = array(
 						'name' => $rdr->item('name'),
 						'context' => array(
 							'folder' => $rdr->item('folder'),
@@ -337,7 +358,8 @@ class BuilderComponent implements BuilderComponentInterface {
 							'public_name' => $rdr->item('public_name') ? $rdr->item('public_name') : $rdr->item('public_name_'.BASIC_LANGUAGE::init()->current()),
 							'cmp_settings' => $rdr->item('cmp_settings'),
 							'system' => $rdr->item('admin_group'),
-							'admin_support' => $rdr->item('admin_support')
+							'admin_support' => $rdr->item('admin_support'),
+							'prefix' => $prefix
 						),
 						'child' => $this->_buildRegister($rdr->item('id'), $level + 1)
 					);
@@ -350,6 +372,41 @@ class BuilderComponent implements BuilderComponentInterface {
 		}
 	}
 	/**
+	 * @param string $column
+	 * @return string
+	 */	
+	protected function _selectBuilder($column){
+		$data = "`".$column."` ";
+
+		switch($column){
+			case 'name':
+				$data .= "varchar(255) NOT NULL DEFAULT '' ";
+				break;
+			case 'class':
+				$data .= "varchar(255) NOT NULL DEFAULT '' ";
+				break;
+			case 'folder':
+				$data .= "varchar(255) NOT NULL DEFAULT '' ";
+				break;
+			case 'public_name':
+				$data .= "varchar(255) NOT NULL DEFAULT '' ";
+				break;
+			case 'cmp_settings':
+				$data .= "text NOT NULL DEFAULT '' ";
+				break;
+			case 'admin_support':
+				$data .= "int(1) NOT NULL DEFAULT '0' ";
+				break;
+			case '_parent_self':
+				$data .= "int(11) NOT NULL DEFAULT '0' ";
+				break;
+			case 'order_id':
+				$data .= "int(11) NOT NULL DEFAULT '0' ";
+				break;
+		}
+		return $data;
+	}	
+	/**
 	 * @param string $name
 	 * @param array [$context]
 	 * @param RegisterObject [$target] 
@@ -357,6 +414,10 @@ class BuilderComponent implements BuilderComponentInterface {
 	 * @return RegisterObject
 	 */
 	function registerComponent($name, $context = array(), $target = null, $position = -1){
+		if(!isset($context['prefix'])){
+			$context['prefix'] = ltrim($name, '#');
+		}
+		
 		$obj = new RegisterObject($name, $context);
 		
 		if($target == null){
@@ -378,16 +439,23 @@ class BuilderComponent implements BuilderComponentInterface {
 				}
 			}
 		}else{
-			if($position >= 0 && $position <= count($target->child)){
+			if($position >= 0){
 				$tmp = $target->child;
-				for($i=0;$i<count($tmp);$i++){
+				
+				$target->child[] = array();
+				
+				$i = 0; $match = false; foreach($tmp as $v){
 					if($i == $position){
-						$target->child[] = $obj;
+						$match = true;
+						$target->child[$obj->system_name] = $obj;
 					}
-					$target->child[] = $v;
+					$target->child[$v->system_name] = $v;
+				}
+				if(!$match){
+					$target->child[$obj->system_name] = $obj;
 				}
 			}else{
-				$target->child[] = $obj;
+				$target->child[$obj->system_name] = $obj;
 			}
 		    
 			if($obj->started){
@@ -427,7 +495,7 @@ class BuilderComponent implements BuilderComponentInterface {
 			
 			if(isset($obj->cmp_settings['prepareCofiguration'])){
 				BASIC::init()->imported($obj->class.'.cmp', $obj->folder);
-				call_user_func(array($obj->class, 'prepareCofiguration'));
+				call_user_func(array($obj->class, 'prepareCofiguration'), false, $obj);
 			}
 			
 			if(isset($v['child']) && is_array($v['child'])){
@@ -444,13 +512,11 @@ class BuilderComponent implements BuilderComponentInterface {
 	 */
 	function removeRegisterComponent($name, $prefix = ''){
 		if(isset($this->model[$prefix.$name])){
-			$cmp = &$this->model[$prefix.$name];
-			for($i=0;$i<count($cmp->parent->child);$i++){
-				if($cmp->parent->child[$i] == $cmp){
-					unset($cmp->parent->child[$i]);
-					break;
-				}
+			$cmp = $this->model[$prefix.$name];
+			if($cmp->parent){
+				unset($this->model[$cmp->parent]->child[$name]);
 			}
+			unset($this->model[$prefix.$name]);
 		}
 	}
 	/**
@@ -482,11 +548,6 @@ class BuilderComponent implements BuilderComponentInterface {
 		$this->registerComponent('#menu-positions', array(
 			'public_name' => BASIC_LANGUAGE::init()->get('cms_cmp_menu_positions'), 
 			'class' => 'Positions',
-			'folder' => 'cms/controlers'
-		));
-		$this->registerComponent('#countries', array(
-			'public_name' => BASIC_LANGUAGE::init()->get('cms_cmp_countries'),
-			'class' => 'Countries',
 			'folder' => 'cms/controlers'
 		));
 		
@@ -658,24 +719,14 @@ class BuilderComponent implements BuilderComponentInterface {
 			if($sysObj->prefix) $cmp->prefix = $sysObj->prefix;
 			$cmp->model = $sysObj;
 			
-			$name = 'CmsComponent'; if($cmp instanceof $name){
-				//@TODO  Shorcuts - deprecated. Will remove in next version
-				$cmp->parent = $sysObj->parent;
-				$cmp->child = $sysObj->child;
+ 			$name = 'CmsComponent'; if($cmp instanceof $name){
+ 				//@TODO  Shorcuts - deprecated. Will remove in next version
+ 				$cmp->parent = $sysObj->parent;
+ 				$cmp->child = $sysObj->child;
 				
-				$cmp->setChildActions();
-				$cmp->setParentAction();
-				
-				if($cmp->parent){
-					if(!$cmp->prefix){
-						$cmp->prefix = $cmp->system_prefix = str_replace("-", "_", $sysObj->system_name);
-					}
-					if($cmp->parent->parent && !$cmp->parent->prefix){
-						$cmp->parent->prefix = $cmp->parent->system_prefix = str_replace("-", "_", $cmp->parent->system_name);
-					}
-				}
+ 				$cmp->setChildActions();
+ 				$cmp->setParentAction();
 			}
-			
 			foreach($sysObj->cmp_settings as $k => $v){
 				$cmp->$k = $v;
 			}

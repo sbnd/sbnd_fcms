@@ -2,7 +2,7 @@
 /**
 * SBND F&CMS - Framework & CMS for PHP developers
 *
-* Copyright (C) 1999 - 2013, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
+* Copyright (C) 1999 - 2014, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 *
 * @author SBND Techologies Ltd <info@sbnd.net>
 * @package cms.controlers.front
-* @version 7.0.4
+* @version 7.0.6
 */
 
 
@@ -58,7 +58,7 @@ interface SearchBarInterface{
 	 * @param array $criteria
 	 * @return ArrayCollection
 	 */
-	function getMatchData($criteria);
+	function getMatchData($criteria, $lenght_short_search_results);
 }
 /** 
  * 
@@ -140,6 +140,15 @@ class SearchBar extends CmsComponent implements ModuleSettingsInterface{
 	 * 
 	 * @access public
 	 * @see CmsComponent::main()
+	 */
+	 
+	 public $lenght_short_search_results = 0;
+	/**
+	 * 
+	 * Lenght short search results
+	 * 
+ 	 * @var int
+	 * @access public
 	 */
 	public function main(){
 		parent::main();
@@ -238,15 +247,20 @@ class SearchBar extends CmsComponent implements ModuleSettingsInterface{
 					$cmp = Builder::init()->build($val);
 					if(!$cmp || !method_exists($cmp, 'getMatchData')) continue;
 					
-					if($res = $cmp->getMatchData($criteria)){
+					if($res = $cmp->getMatchData($criteria, $this->lenght_short_search_results)){
 	//					$count += count($res);
 	//					
 	//					$tpl_data['search_results'][] = array(
 	//						'target_name' => $val, //@FIXME da se pokazvat public_name's
 	//						'results' => $res
 	//					);
+	
+					$temp_component = Builder::init()->getRegisterComponent($val);
+					$temp_public_name = $temp_component->public_name;
+	
 						foreach ($res as $el){
-							$el['target_name'] = $val; //@FIXME da se pokazvat public_name's
+							$el['target_name'] = $val;
+							$el['public_name'] = $temp_public_name; 								
 							
 							$results[] = $el;
 						}
@@ -277,7 +291,8 @@ class SearchBar extends CmsComponent implements ModuleSettingsInterface{
 			'template_list' => $this->template_list,
 			'prefix' 		=> $this->prefix,
 			'search_targets'=> $this->search_targets,
-			'result_page'	=> $this->result_page
+			'result_page'	=> $this->result_page,
+			'lenght_short_search_results'	=> $this->lenght_short_search_results,
 		);
 	}
 	/**
@@ -315,6 +330,10 @@ class SearchBar extends CmsComponent implements ModuleSettingsInterface{
 				'attributes' => array(
 					'data' => Builder::init()->getdisplayComponent('modules', false)->genesateAssignList()
 				)
+			),
+			'lenght_short_search_results' => array(
+				'text' => BASIC_LANGUAGE::init()->get('lenght_short_search_results'),
+				'dbtype' => 'int'
 			),
 			'result_page' => array(
 				'text' => BASIC_LANGUAGE::init()->get('result_page'),
@@ -364,5 +383,8 @@ class SearchBar extends CmsComponent implements ModuleSettingsInterface{
 	 */
 	function isRequireSettings(){
 		return true;
+	}
+	function prepareCofiguration($check = false, $owner = null){
+		return false;
 	}
 }

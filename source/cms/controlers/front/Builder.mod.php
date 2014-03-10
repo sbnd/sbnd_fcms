@@ -2,7 +2,7 @@
 /**
 * SBND F&CMS - Framework & CMS for PHP developers
 *
-* Copyright (C) 1999 - 2013, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
+* Copyright (C) 1999 - 2014, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 *
 * @author SBND Techologies Ltd <info@sbnd.net>
 * @package cms.controlers.front
-* @version 7.0.4  
+* @version 7.0.6  
 */
 
 BASIC::init()->imported('builder.mod', 'cms');
@@ -125,11 +125,9 @@ class BuilderRewrite extends BasicRewrite implements BasicRewriteInterfase{
     }	
 }
 /**
- * Template plugin <!-- navigation --> for build site navigation bars
+ * Template plugin tag <!-- navigation(menu name,template name) -->
  * 
  * <code>
- * 		<!-- navigation(menu name,template name) -->
- * 
  * 		<!-- lingual(top,cms-top-menu.tpl) -->
  * </code>
  * 
@@ -156,6 +154,238 @@ class BasicTemplatePluginNavigation implements BasicTemplatePluginInterface{
 	 */
 	private function _parse($match){
 		return "<?php print Builder::init()->menu('".preg_replace_callback('/\$\{([^\}]+)\}/', 'TemplateDriverBasic::translate_collback', $match[1])."', '".$match[2]."'); ?>";
+	}
+}
+/**
+ * Template plugin tag !-- sub-menu(menu name,template name) -->
+ *
+ * Collect all pages included in "menu name",
+ * Check for page exist in navigation path,
+ * Collect all child pages from detected page,
+ * Create menu from "template name"
+ *
+ * <code>
+ * 		<!-- sub-menu(catalog,my-artical-menu.tpl) -->
+ * </code>
+ *
+ * @author Evgeni Baldzhiyski
+ * @version 0.1
+ */
+class BasicTemplatePluginSubMenu implements BasicTemplatePluginInterface{
+	/**
+	 * Change navigation template tag with php code
+	 *
+	 * @access public
+	 * @param string $source
+	 * @return string
+	 */
+	public function parse($source){
+		return preg_replace_callback('/<!-- sub-menu\(([^\)]+),([^\)]+)\) -->/', array($this, '_parse'), $source);
+	}
+	/**
+	 * Help method for parse()
+	 *
+	 * @access private
+	 * @param array $match
+	 * @return string php code
+	 */
+	private function _parse($match){
+		return "<?php print BasicTemplatePluginSubMenu::parser(".
+				"'".preg_replace_callback('/\$\{([^\}]+)\}/', 'TemplateDriverBasic::translate_collback', $match[1])."',".
+				"'".$match[2]."'); ?>";
+	}
+	/**
+	 * @todo description
+	 *
+	 * @static
+	 * @access public
+	 * @param string $menu_name
+	 * @param string $template_name
+	 * @return string
+	 */
+	static public function parser($menu_name, $template_name){
+		$pages = array();
+		foreach(Builder::init()->pagesControler->getMenuData($menu_name) as $v){
+			$pages[$v['data']['name']] = $v['data'];
+		}
+
+		$current_path = array();
+		foreach(explode("/", BASIC::init()->scriptName()) as $v){
+			if(isset($pages[$v])){
+				$manus = array_flip(Builder::init()->pagesControler->getMenuPositionsNames());
+
+				return Builder::init()->pagesControler->getMenu($manus[$pages[$v]['position'][0]], $template_name, $pages[$v]['id']);
+			}
+		}
+		return '';
+	}
+}
+/**
+ * Template plugin tag <!-- secondary-menu(menu name,sub name menu,template name) -->
+ *
+ * Collect all pages from "manu name",
+ * Check for page exist in navigation path,
+ * Collect all child pages for detected page that include in "sub name menu"
+ * Create menu from "template name"
+ * 
+ * <code>
+ * 		<!-- secondary-menu(top,secondary,my-secondary-menu.tpl) -->
+ * </code>
+ *
+ * @author Evgeni Baldzhiyski
+ * @version 0.1
+ */
+class BasicTemplatePluginSecondaryMenu implements BasicTemplatePluginInterface{
+	/**
+	 * Change navigation template tag with php code
+	 *
+	 * @access public
+	 * @param string $source
+	 * @return string
+	 */
+	public function parse($source){
+		return preg_replace_callback('/<!-- secondary-menu\(([^\)]+),([^\)]+),([^\)]+)\) -->/', array($this, '_parse'), $source);
+	}
+	/**
+	 * Help method for parse()
+	 *
+	 * @access private
+	 * @param array $match
+	 * @return string php code
+	 */
+	private function _parse($match){
+		return "<?php print BasicTemplatePluginSecondaryMenu::parser(".
+				"'".preg_replace_callback('/\$\{([^\}]+)\}/', 'TemplateDriverBasic::translate_collback', $match[1])."',".
+				"'".preg_replace_callback('/\$\{([^\}]+)\}/', 'TemplateDriverBasic::translate_collback', $match[2])."',".
+				"'".$match[3]."'); ?>";
+	}
+	/**
+	 * @todo description
+	 *
+	 * @static
+	 * @access public
+	 * @param string $menu_name
+	 * @param string $secondary_menu_name
+	 * @param string $template_name
+	 * @return string
+	 */
+	static public function parser($menu_name, $secondary_menu_name, $template_name){
+		if($id = self::checkForId(Builder::init()->pagesControler->getMenuData($menu_name))){
+			return Builder::init()->pagesControler->getMenu($secondary_menu_name, $template_name, $id);
+		}
+		return '';
+	}
+	static private function checkForId($arr){
+		$id = 0;
+		foreach ($arr as $k => $v){
+			if($v['data']['current']){
+				if(!$id = self::checkForId($v['childs'])){
+					return $v['data']['id'];
+				}
+				return $id;
+			}
+		}
+		return $id;
+	}
+}
+/**
+ * Template plugin tag <!-- additional-menu(page name,template name) -->
+ *
+ * Collect all child page from "page name"
+ * Create menu from "template name"
+ * 
+ * <code>
+ * 		<!-- additional-menu(catalog,my-artical-menu.tpl) -->
+ * </code>
+ *
+ * @author Evgeni Baldzhiyski
+ * @version 0.1
+ */
+class BasicTemplatePluginAdditionalMenu implements BasicTemplatePluginInterface{
+	/**
+	 * Change navigation template tag with php code
+	 *
+	 * @access public
+	 * @param string $source
+	 * @return string
+	 */
+	public function parse($source){
+		return preg_replace_callback('/<!-- additional-menu\(([^\)]+),([^\)]+)\) -->/', array($this, '_parse'), $source);
+	}
+	/**
+	 * Help method for parse()
+	 *
+	 * @access private
+	 * @param array $match
+	 * @return string php code
+	 */
+	private function _parse($match){
+		return "<?php print BasicTemplatePluginAdditionalMenu::parser(".
+				"'".preg_replace_callback('/\$\{([^\}]+)\}/', 'TemplateDriverBasic::translate_collback', $match[1])."',".
+				"'".$match[2]."'); ?>";
+	}
+	/**
+	 * @todo description
+	 *
+	 * @static
+	 * @access public
+	 * @param string $page_name
+	 * @param string $template_name
+	 * @return string
+	 */
+	static public function parser($page_name, $template_name){
+		$current_path = array();
+		foreach(explode("/", BASIC::init()->scriptName()) as $v){
+			$current_path[$v] = 1;
+		}
+		if(!isset($current_path[$page_name])) return;
+		
+		if($page = Builder::init()->pagesControler->getPage($page_name)){
+			$manus = array_flip(Builder::init()->pagesControler->getMenuPositionsNames());
+			
+			if(isset($manus[$page['position'][0]])){
+				return Builder::init()->pagesControler->getMenu($manus[$page['position'][0]], $template_name, $page['id']);
+			}
+		}
+		return '';
+	}
+}
+/**
+ * Template plugin tag <!-- site-setting(lingual variable name) -->
+ *
+ * <code>
+ * 		<!-- site-setting(SITE_THEME) -->
+ * </code>
+ *
+ * @author Evgeni Baldzhiyski
+ * @version 0.2
+ * @package basic.template
+ */
+class BasicTemplatePluginSiteSettings implements BasicTemplatePluginInterface{
+	/**
+	 *
+	 *
+	 * Parse function
+	 *
+	 * @access public
+	 * @param string $source
+	 * @return string
+	 */
+	public function parse($source){
+		return preg_replace('/<!-- (site-setting)\(([^\)]+)\) -->/',"<?php print BasicTemplatePluginSiteSettings::parser('$2'); ?>",$source);
+	}
+	/**
+	 *
+	 *
+	 * @todo description
+	 *
+	 * @static
+	 * @access public
+	 * @param string $name
+	 * @return string
+	 */
+	static public function parser($name){
+		return CMS_SETTINGS::init()->get($name);
 	}
 }
 /**
@@ -251,7 +481,7 @@ class BasicTemplatePluginComponent implements BasicTemplatePluginInterface{
  * 		PAGE_DATA - page information
  * 
  * @author Evgeni Baldzhiyski
- * @version 1.5
+ * @version 1.6
  * @since 03.09.2011
  */
 class Builder extends BuilderComponent{
@@ -286,11 +516,17 @@ class Builder extends BuilderComponent{
      */
     static public function init($settings = array()){
     	if(!isset($GLOBALS['BASIC_FRONT_CLIENT'])){
-    		$GLOBALS['BASIC_FRONT_CLIENT'] = new Builder();	
+    		$GLOBALS['BASIC_FRONT_CLIENT'] = new Builder();
+    		
+    		BASIC_LANGUAGE::init()->start();
     		$GLOBALS['BASIC_FRONT_CLIENT']->registerSystemComponents();
     		
     		BASIC_TEMPLATE2::init()->driver->addPlugin('BasicTemplatePluginNavigation', new BasicTemplatePluginNavigation());
+    		BASIC_TEMPLATE2::init()->driver->addPlugin('BasicTemplatePluginSecondaryMeny', new BasicTemplatePluginSecondaryMenu());
     		BASIC_TEMPLATE2::init()->driver->addPlugin('BasicTemplatePluginComponent', new BasicTemplatePluginComponent());
+    		BASIC_TEMPLATE2::init()->driver->addPlugin('BasicTemplatePluginSiteSettings', new BasicTemplatePluginSiteSettings());
+    		BASIC_TEMPLATE2::init()->driver->addPlugin('BasicTemplatePluginAdditionalMenu', new BasicTemplatePluginAdditionalMenu());
+    		BASIC_TEMPLATE2::init()->driver->addPlugin('BasicTemplatePluginSubMenu', new BasicTemplatePluginSubMenu());
     		
     		$GLOBALS['BASIC_FRONT_CLIENT']->pagesControler = $GLOBALS['BASIC_FRONT_CLIENT']->getdisplayComponent('pages', false);
     	}
@@ -432,7 +668,7 @@ class Builder extends BuilderComponent{
 					 	   	   	CMS_SETTINGS::init()->set('SITE_THEME_NAME',$mobile_theme);
 					 	   	   	BASIC_TEMPLATE2::init(array( 
 									'prefix_ctemplate' => $mobile_theme
-								));  
+								));
 								break;
 						}
 					}
@@ -463,7 +699,7 @@ class Builder extends BuilderComponent{
      * @return string
      */
     function compileTemplate(){
-    	$this->META_KEYS(str_replace(" ", ",", $this->LAST_META_NAME).",".$this->META_KEYS());
+    	//$this->META_KEYS(str_replace(" ", ",", $this->LAST_META_NAME).",".$this->META_KEYS());
     	
     	return parent::compileTemplate();
     }
@@ -564,7 +800,7 @@ class Builder extends BuilderComponent{
 	 * @param integer [$parent_id]
 	 * @return array
 	 */
-	public function page($name, $parent_id = 0){
+	public function page($name, $parent_id = -1){
 		return $this->pagesControler->getPage($name, $parent_id);
 	}
 	/**

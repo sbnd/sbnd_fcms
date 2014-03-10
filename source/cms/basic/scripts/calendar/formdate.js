@@ -1,7 +1,7 @@
 /**
 * SBND F&CMS - Framework & CMS for PHP developers
 *
-* Copyright (C) 1999 - 2013, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
+* Copyright (C) 1999 - 2014, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
 *
 * @author SBND Techologies Ltd <info@sbnd.net>
 * @package basic.scripts.calendar
-* @version 7.0.4  
+* @version 7.0.6  
 */
 
 /**
@@ -464,7 +464,7 @@ function formDate(name, value, format, htmlAttr, opt){
 			params.onSelect = function (cal,date,target){
 				if(options.dataformat == 'int'){
 					var f = date.split(/[^0-9AMPM]/ig);
-					var d = new Date(f[0], f[1]-1, f[2], f[3], f[4], 0);
+					var d = new Date(parseInt(f[0]), parseInt(f[1])-1, (f[2] ? parseInt(f[2]) : 1), (f[3] ? parseInt(f[3]) : 0), (f[4] ? parseInt(f[4]) : 0), 0);
 					
 					date = d.getTime()/1000;
 				}

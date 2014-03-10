@@ -2,7 +2,7 @@
 /**
 * SBND F&CMS - Framework & CMS for PHP developers
 *
-* Copyright (C) 1999 - 2013, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
+* Copyright (C) 1999 - 2014, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 *
 * @author SBND Techologies Ltd <info@sbnd.net>
 * @package basic.media
-* @version 7.0.4  
+* @version 7.0.6  
 */
 
 /**
@@ -264,7 +264,7 @@ class ImageMediaPlugin implements BasicMediaPluginInterface{
 	 */
 	function generate($attribute, $info = null){
 		if(!isset($attribute['alt'])){
-			$attribute['alt'] = $attribute['name'];
+			$attribute['alt'] = "Generate Image Alt";
 		}
 		return '<img '.BASIC_GENERATOR::init()->convertAtrribute($attribute)."/>";
 	}
@@ -290,7 +290,13 @@ class MediaPlugin implements BasicMediaPluginInterface{
 		}else if($info['type'] == -2){
 			$o = new QuickTimeVideoMediaPlugin();
 		}else if(!isset($info['mime'])){
-			return '<a href="'.$attribute['src'].'">'.$attribute['name'].'</a>';
+			$name = $attribute['src'];
+			if(isset($attribute['name']) && $attribute['name']){
+				$name = $attribute['name'];
+			}else if(isset($attribute['alt']) && $attribute['alt']){
+				$name = $attribute['alt'];
+			}
+			return '<a href="'.$attribute['src'].'">'.$name.'</a>';
 		}else{
 			$o = new ImageMediaPlugin();
 		}
@@ -668,7 +674,7 @@ class BASIC_MEDIA extends BASIC_CLASS{
 			$src .= $uid;
 		}
 		$attribute['src'] = $src;
-		$attribute['name'] = $this->img;
+		$attribute['alt'] = $this->img;
 		
 		if(isset(self::$controlers[$this->ext])){
 			return self::$controlers[$this->ext]->generate($attribute);

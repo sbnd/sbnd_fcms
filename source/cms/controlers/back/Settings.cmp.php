@@ -2,7 +2,7 @@
 /**
 * BASIC - SBND F&CMS - Framework & CMS for PHP developers
 *
-* Copyright (C) 1999 - 2013, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
+* Copyright (C) 1999 - 2014, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 *
 * @author SBND Techologies Ltd <info@sbnd.net>
 * @package cms.controlers.back
-* @version 7.0.4
+* @version 7.0.6
 */
 
 
@@ -52,8 +52,7 @@ class Settings extends CmsComponent{
 	 * @var boolean
 	 * @access private
 	 */
-	protected $lingual_reload = false;
-	
+	protected $lingual_reload = false;	
 	/**
 	 * 
 	 * Main function - the constructor of the component
@@ -246,6 +245,32 @@ class Settings extends CmsComponent{
 				));
 				break;
 			}
+			case 'SITE_SSH':{
+				$this->updateField('value', array(
+					'formtype' => 'radio',
+					'attributes' => array(
+						'data' => array(
+							'none'  => BASIC_LANGUAGE::init()->get('site_ssh_none'),
+							'front' => BASIC_LANGUAGE::init()->get('site_ssh_front'),
+							'back'  => BASIC_LANGUAGE::init()->get('site_ssh_back'),
+							'total' => BASIC_LANGUAGE::init()->get('site_ssh_total')
+						)
+					)
+				));
+				break;
+			}
+			case 'SITE_DATA_DELETE':{
+				$this->updateField('value', array(
+					'formtype' => 'radio',
+					'attributes' => array(
+						'data' => array(
+							'archive'  => BASIC_LANGUAGE::init()->get('archive'),
+							'full' => BASIC_LANGUAGE::init()->get('full')
+						)
+					)
+				));
+				break;
+			}			
 			case 'SITE_OPEN':{
 				BASIC_GENERATOR::init()->script("$(document).ready(function (){
 					$('#value_radio input:checked').click();
@@ -277,6 +302,37 @@ class Settings extends CmsComponent{
 				}
 				break;
 			}
+			case 'archive_mode':{
+				$this->updateField('value', array(
+					'formtype' => 'select',
+					'attributes' => array(
+						'data'=> array(
+								'file' => 'file',
+								'database' => 'database'
+							)
+						),
+				));
+				$this->updateField('lingual', array(
+					'formtype' => 'hidden'
+				));
+				break;
+			}
+			case 'archive':{
+				$this->updateField('value', array(
+					'formtype' => 'select',
+					'attributes' => array(
+						'data'=> array(
+								'0' => 'Do not archive on delete',
+								'1' => 'Archive on delete'
+							)
+						),
+				));
+				$this->updateField('lingual', array(
+					'formtype' => 'hidden'
+				));
+				break;
+			}
+			
 		}
 		if($this->getDataBuffer('system') && BASIC_USERS::init()->level() > -1){
 			$this->updateField('lingual', array(

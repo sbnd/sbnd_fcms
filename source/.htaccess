@@ -32,7 +32,7 @@ RewriteRule ^([^\./]+)\.php(.*)$ $1.php?%{QUERY_STRING} [L]
 
 # Lock for scripts after language in url without cp/ (en/index.php?_capcha_=mycapcha)
 RewriteCond %{REQUEST_FILENAME} !/cp
-RewriteRule ^([^/\.]+)/([^/]+)\.php(.*)$ $2.php?%{QUERY_STRING}&language=$1[L]
+RewriteRule ^([a-z]{2}|[a-z]{2}[-_][A-Z]{2})/([^/]+)\.php(.*)$ $2.php?%{QUERY_STRING}&language=$1[L]
 
 # Allow access to robots file
 RewriteRule ^robots.txt robots.txt [L]

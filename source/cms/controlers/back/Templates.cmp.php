@@ -2,7 +2,7 @@
 /**
 * SBND F&CMS - Framework & CMS for PHP developers
 *
-* Copyright (C) 1999 - 2013, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
+* Copyright (C) 1999 - 2014, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 *
 * @author SBND Techologies Ltd <info@sbnd.net>
 * @package cms.controlers.back
-* @version 7.0.4
+* @version 7.0.6
 */
 
 
@@ -46,8 +46,7 @@ class Templates extends CmsComponent {
 	 * @var array
 	 * @access private
 	 */
-	protected $list = array();
-	
+	protected $list = array();	
 	/**
 	 * 
 	 * Main function - the constructor of the component
@@ -78,9 +77,9 @@ class Templates extends CmsComponent {
 	function ActionList(){
 		$this->map('name', BASIC_LANGUAGE::init()->get('templates_name_label'));
 		$this->map('mdate', BASIC_LANGUAGE::init()->get('templates_mdate_label'), 'formatter');
+	
+		$this->filter = new BasicFilter($this->prefix, $this->filter_buttons, $this->template_filter);
 		
-		$this->filter = new BasicFilter('f');
-		$this->filter->template($this->template_filter);
 		$this->filter->field('name', array(
 			'text' => BASIC_LANGUAGE::init()->get('templates_name_label'),
 			'filter' => " AND `name` LIKE '%{v}%'"
@@ -89,7 +88,6 @@ class Templates extends CmsComponent {
 			'text' => BASIC_LANGUAGE::init()->get('templates_body_label'),
 			'filter' => " AND `body` LIKE '%{v}%'"
 		));
-		
 		return parent::ActionList();
 	}
 	/**

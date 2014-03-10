@@ -2,7 +2,7 @@
 /**
 * SBND F&CMS - Framework & CMS for PHP developers
 *
-* Copyright (C) 1999 - 2013, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
+* Copyright (C) 1999 - 2014, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 *
 * @author SBND Techologies Ltd <info@sbnd.net>
 * @package basic.basic
-* @version 7.0.4  
+* @version 7.0.6  
 */
 
 /**
@@ -157,14 +157,12 @@ final class BASIC extends BASIC_CLASS{
 				$_SERVER['SCRIPT_FILENAME'] = preg_replace("#^.*".$ex[0]."#", $ex[0], $_SERVER['SCRIPT_FILENAME']);
 			}
 		}
-		
-		//die('test: '.(!(strpos($_SERVER['HTTP_USER_AGENT'], 'MSIE 7') === false)));
-		
+	
 		if(isset($_SERVER['HTTP_HOST'])){
 			$doc_root = str_replace($_SERVER['SCRIPT_NAME'], '', $_SERVER['SCRIPT_FILENAME']);
 			$dir = $this->validPath(str_replace($doc_root,'',$this->ini_get("root_path")));
 			
-			$this->ini_set('root_virtual', (isset($_SERVER['HTTPS']) ? 'https' : 'http'). "://".$_SERVER['HTTP_HOST'].$dir);
+			$this->ini_set('root_virtual', (isset($_SERVER['HTTPS']) || (isset($_SERVER['HTTP_SSL_HTTPS']) && $_SERVER['HTTP_SSL_HTTPS'] == 'true') ? 'https' : 'http'). "://".$_SERVER['HTTP_HOST'].$dir);
 		
 			$cookie = (isset($_COOKIE[$this->timeZoneCookieName]) ? $_COOKIE[$this->timeZoneCookieName] : '');
 			
@@ -592,6 +590,7 @@ final class BASIC extends BASIC_CLASS{
 	      'ppt'   =>  'application/vnd.ms-powerpoint',
 	      'wbxml' =>  'application/vnd.wap.wbxml',
 	      'wmlc'  =>  'application/vnd.wap.wmlc',
+	      'dmg'   =>  'application/x-apple-diskimage',
 	      'dcr'   =>  'application/x-director',
 	      'dir'   =>  'application/x-director',
 	      'dxr'   =>  'application/x-director',
@@ -855,11 +854,12 @@ function cleanURLInjection($post){
  * @param string $post
  * @return string
  * @package basic
+ * @version 0.2
  */
 function clearUpInjection($post){
 	//$post = str_replace('/',  '', $post);
 	$post = str_replace('\\', '', $post);
-	$post = str_replace('..', '', $post);
+	$post = preg_replace('/\.\.+/', '', $post);
 	
 	return cleanURLInjection($post);
 }

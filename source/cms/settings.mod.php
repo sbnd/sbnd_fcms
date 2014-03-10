@@ -2,7 +2,7 @@
 /**
 * SBND F&CMS - Framework & CMS for PHP developers
 *
-* Copyright (C) 1999 - 2013, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
+* Copyright (C) 1999 - 2014, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 *
 * @author SBND Techologies Ltd <info@sbnd.net>
 * @package cms.settings
-* @version 7.0.4
+* @version 7.0.6
 */
 
 
@@ -128,10 +128,10 @@ class CMS_SETTINGS {
 					$value .= $lang['code']."=".$val[$lang['code']];
 				}
 			}
-			if(!BASIC_SQL::init()->exec(" INSERT INTO `".$this->container."` (`variable`, `value`, `lingual`) VALUES ('".$name."', '".$value."', ".(int)$lingual.") ")){
+			if(!BASIC_SQL::init()->exec2(" INSERT INTO `".$this->container."` (`variable`, `value`, `lingual`) VALUES ('".$name."', '".$value."', ".(int)$lingual.") ")){
 				BASIC_ERROR::init()->clean();
 				
-				BASIC_SQL::init()->exec(" UPDATE `".$this->container."` SET 
+				BASIC_SQL::init()->exec2(" UPDATE `".$this->container."` SET 
 					`value` = '".$value."',
 					`lingual` = ".(int)$lingual.",
 					`system` = ".($hidden ? -1 : 0)."
@@ -174,7 +174,7 @@ class CMS_SETTINGS {
 				throw new Exception(" Can't find file <b>".$lFile."</b>.");
 			}
 		}else if($this->method == 'db'){
-			$rdr = BASIC_SQL::init()->read_exec(" SELECT `variable`, `value`, `lingual` FROM `".$this->container."` WHERE 1=1 ORDER BY `variable` ");
+			$rdr = BASIC_SQL::init()->read_exec2(" SELECT `variable`, `value`, `lingual` FROM `".$this->container."` WHERE 1=1 ORDER BY `variable` ");
 			
 			$err = BASIC_ERROR::init()->error();
 			if($err['code'] == 1146){				

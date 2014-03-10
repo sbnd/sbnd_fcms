@@ -23,6 +23,8 @@
 		<![endif]-->
 
 		<script src="${THEME}js/bootstrap.js"></script>
+		
+		<script type="text/javascript" src="${THEME}js/treeChecker.js"></script>
 		<script type="text/javascript" src="${THEME}js/form-action-manager.js"></script>
 		
 		<!--[if lte IE 6]><script type="text/javascript" src="${THEME}js/supersleight.plugin.js"></script><![endif]-->
@@ -75,8 +77,8 @@
 			<div class="boxbrdr">
 				<!-- if(${BREADCRUMBS}) --><!-- template(cms-breadcrumbs.tpl) --><!-- end -->
 				
-				<h1>${PAGE_DATA.title}</h1>
-				<div class="page_body">${PAGE_DATA.body}</div>
+				<!-- if(${PAGE_DATA.title}) --><h1>${PAGE_DATA.title}</h1><!-- end -->
+				<!-- if(${PAGE_DATA.body}) --><div class="page_body">${PAGE_DATA.body}</div><!-- end -->
 				
 				${CONTENT}
 			</div>

@@ -2,7 +2,7 @@
 /**
 * SBND F&CMS - Framework & CMS for PHP developers
 *
-* Copyright (C) 1999 - 2013, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
+* Copyright (C) 1999 - 2014, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 *
 * @author SBND Techologies Ltd <info@sbnd.net>
 * @package basic.generator
-* @version 7.0.4  
+* @version 7.0.6  
 */
 
 BASIC::init()->imported('xml.mod');
@@ -54,6 +54,10 @@ interface FormControlInterface{
 	 * @return boolean
 	 */	
 	function isFileUpload();
+	/**
+	 * @return hashmap
+	 */
+	function specificParameters();
 }
 /**
  * @author Evgeni Baldzhiyski
@@ -139,6 +143,9 @@ class BasicControl implements FormControlInterface{
 		return false;
 	}
 	function fieldNames(){
+		return array();
+	}
+	function specificParameters(){
 		return array();
 	}
 	
@@ -232,6 +239,10 @@ class CheckBoxControl extends BasicControl implements FormControlInterface{
 class TextareaControl extends BasicControl implements FormControlInterface{
 	/**
 	 * Generate textarea control html
+	 * 
+	 * #Stecial attributes
+	 * 	allow_html:Boolean => false|0
+	 * 
 	 * @access public
 	 * @param string $name
 	 * @param string $value
@@ -255,6 +266,9 @@ class TextareaControl extends BasicControl implements FormControlInterface{
 
 		return BASIC_GENERATOR::init()->createTag('textarea', $this->attributes, $value);
 	}
+	function specificParameters(){
+		return array('allow_html' => '');
+	}
 }
 /**
  * @author Evgeni Baldzhiyski
@@ -273,10 +287,14 @@ class DateControl extends BasicControl implements FormControlInterface{
 	/**
 	 *Generate date control html.Used ISO time standart {yyyy-mm-dd hh:mm:ss}
 	 * 
-	 * new attribute
-	 * 	disabled = [true|1]
-	 *  dkey = true[false] view key checkbox
-	 * 	format - [%Y-%m-%d %H:%M %p]
+	 * #special attributes
+	 * 
+	 *  dkey 			 => true[false] (show checkbox that active the date control. Use when the interface (doe example: search ) need to do not submit the date in specific moment.)
+	 * 	format 			 => [%Y-%m-%d %H:%M %p]
+	 * 	skin:String 	 => BASIC::init()->ini_get('root_virtual').BASIC::init()->ini_get('basic_path')."scripts/calendar/skins/theme.css
+	 * 	minDate:String	 => [''] (date in standart sql format YYYY-MM-DD)
+	 * 	maxDate:String	 => [''] (date in standart sql format YYYY-MM-DD)
+	 * 	related			 => [''] (id of other DateControl to support runtime minimum date property.)
 	 *
 	 *	 ("inputField",null);
 	 *	 ("displayArea",null);
@@ -306,8 +324,6 @@ class DateControl extends BasicControl implements FormControlInterface{
 	 *	 ("cache",false);
 	 *	 ("showOthers",false);
 	 *	 ("multiple",null);
-	 *
-	 * 	skin [default is basic_path/scripts/calendar/skins/]
 	 * 
 	 * @access public
 	 * @param string $name
@@ -346,7 +362,11 @@ class DateControl extends BasicControl implements FormControlInterface{
 			$value = (!$value || $value == '0000-00-00 00:00:00' || $value == '0000-00-00' || !(int)preg_replace('/[^0-9]*/', '', $value) ? time() : strtotime($value));
 			$value = date('Y-m-d H:i:s', $value);
 		}else{
-			if(!$value) $value = time();
+			if(!$value){
+				$value = time();
+			}else{
+				$value = (int)$value;
+			}
 		}
 		
 		if(!isset($this->attributes['class'])){
@@ -402,6 +422,16 @@ class DateControl extends BasicControl implements FormControlInterface{
 			
 		return BASIC_GENERATOR::init()->createCloseTag('input', $this->attributes+array('value' => $value, 'id' => $name))."\n";
 	}
+	function specificParameters(){
+		return array(
+			'dkey' 	 => false,
+			'format' => '%Y-%m-%d %H:%M %p',
+			'skin' 	 => '',
+			'minDate'=> '',
+			'maxDate'=> '',
+			'related'=> ''			
+		);
+	}
 }
 /**
  * @author Evgeni Baldzhiyski
@@ -412,6 +442,13 @@ class DateControl extends BasicControl implements FormControlInterface{
 class SelectControl extends BasicControl implements FormControlInterface{
 	/**
 	 * Generate select control html
+	 * 
+	 * #Specific properties
+	 * 	data:hashmap 
+	 * 		special data:
+	 * 			GROUP::the group name text							// open group
+	 * 			ENDGROUP 											// close group
+	 * 			%value => text (in basic style -> %value=text|) 	// make the row like disabled 
 	 * 
 	 * @access public
 	 * @param string $name
@@ -515,6 +552,11 @@ class SelectControl extends BasicControl implements FormControlInterface{
 		}
 		return false;
 	}
+	function specificParameters(){
+		return array(
+			'data' 	 => ''
+		);
+	}
 }
 /**
  * @author Evgeni Baldzhiyski
@@ -556,11 +598,11 @@ class RadioBoxGroupControl extends SelectControl implements FormControlInterface
 	/**
 	 * Generate radiobox group control html
 	 * 
-	 * 	special attributes
-	 * 	vmode => true|false [false]
-	 * 	onclick - will append this attribute for every element
-	 * 	onmouseover - will append this attribute for every element 
-	 *  onmouseout - will append this attribute for every element
+	 * #specific attributes
+	 * 	vmodeBoolean 		=> true|false [false]
+	 * 	onclick:String 		=> [''] 				//will append this attribute for every element
+	 * 	onmouseover:String 	=> [''] 				//will append this attribute for every element 
+	 *  onmouseout:String	=> [''] 				//will append this attribute for every element
 	 *  
 	 * @access public
 	 * @param string $name
@@ -628,6 +670,15 @@ class RadioBoxGroupControl extends SelectControl implements FormControlInterface
 		}
 		return BASIC_GENERATOR::init()->element('div', $this->attributes, $tmp);
 	}
+	function specificParameters(){
+		$data = parent::specificParameters();
+		$data['vmode'] = '0';
+		$data['onclick'] = '';
+		$data['onmouseover'] = '';
+		$data['onmouseout'] = '';
+	
+		return $dta;
+	}
 }
 /**
  * @author Evgeni Baldzhiyski
@@ -639,9 +690,10 @@ class CheckBoxGroupControl extends SelectControl implements FormControlInterface
 	/**
 	 * Generate checkbox group control html
 	 * 
-	 * 	onclick - will append this attribute for every element
-	 * 	onmouseover - will append this attribute for every element 
-	 *  onmouseout - will append this attribute for every element
+	 * #specific attributes
+	 * 	onclick:String 	=> [''] 			// will append this attribute for every element
+	 * 	onmouseover 	=> [''] 			// will append this attribute for every element 
+	 *  onmouseout 		=> ['']				// will append this attribute for every element
 	 *  
 	 * @access public
 	 * @param string $name
@@ -712,6 +764,14 @@ class CheckBoxGroupControl extends SelectControl implements FormControlInterface
 	function isMultiple(){
 		return true;
 	}
+	function specificParameters(){
+		$data = parent::specificParameters();
+		$data['onclick'] = '';
+		$data['onmouseover'] = '';
+		$data['onmouseout'] = '';
+		
+		return $dta;
+	}
 }
 /**
  * @author Evgeni Baldzhiyski
@@ -723,9 +783,11 @@ class ManageComboControl extends SelectControl implements FormControlInterface{
 	/**
 	 * Generate managecombobox control html
 	 * 
-	 * special attribute
- 	 * 		data - array with texts for input fields. If text element contains '' will generate only text control without label.
- 	 * 		buttons - style string (add:Add;del:Delete) for set buttons texts. If add:; will remove button "add".
+	 * #specific attributes
+ 	 * 		buttons:String(deprecated) 	=> ['']		// style string (add:Add;del:Delete) for set buttons texts. If add:; will remove button "add".
+	 *  	add:String 					=> ['']		// set label of add button. If it is empty will remove the add button from the control
+	 *  	del:String					=> ['']		// set label of delete button. If it is empty will remove the delete button from the control
+	 *  	skin:String 				=> BASIC::init()->ini_get('root_virtual').BASIC::init()->ini_get('basic_path').'/scripts/svincs/controls/select/style.css
 	 *  
 	 * @access public
 	 * @param string $name
@@ -836,6 +898,14 @@ class ManageComboControl extends SelectControl implements FormControlInterface{
 	function isMultiple(){
 		return true;
 	}
+	function specificParameters(){
+		$data = parent::specificParameters();
+		$data['add'] = '+';
+		$data['del'] = '-';
+		$data['skin'] = '';
+	
+		return $dta;
+	}
 }
 /**
  * @author Evgeni Baldzhiyski
@@ -847,6 +917,9 @@ class MoveComboControl extends SelectControl implements FormControlInterface{
 	/**
 	 * Generate movecombobox control html
 	 * 
+	 * #specific attributes
+	 *  	skin:String => BASIC::init()->ini_get('root_virtual').BASIC::init()->ini_get('basic_path').'/scripts/svincs/controls/select/style.css
+	 *  
 	 * @access public
 	 * @param string $name
 	 * @param string $value
@@ -939,6 +1012,12 @@ class MoveComboControl extends SelectControl implements FormControlInterface{
 	function isMultiple(){
 		return true;
 	}
+	function specificParameters(){
+		$data = parent::specificParameters();
+		$data['skin'] = '';
+	
+		return $dta;
+	}
 }
 /**
  * @author Evgeni Baldzhiyski
@@ -950,7 +1029,7 @@ class UploadControl extends BasicControl implements FormControlInterface{
 	/**
 	 * Generate upload control html
 	 * 
-	 * special attributes
+	 * #specific attributes
  	 * 	dir - uploaded file folder
  	 * 	max - max file size
  	 * 	perm - [type1,type2,...,typeN] permissible file types
@@ -1063,6 +1142,23 @@ class UploadControl extends BasicControl implements FormControlInterface{
  			'desc_'
  		);
  	}
+ 	function specificParameters(){
+ 		return array(
+ 			'dir' 		=> '',
+ 			'max' 		=> '',
+ 			'rand' 		=> '',
+ 			'as' 		=> '',
+ 			'perm' 		=> '',
+ 			'preview' 	=> '',
+ 			'error' 	=> '',
+ 			'delete_btn'=> '',
+ 			'upload_btn'=> '',
+ 				
+ 			'onComplete'=> '',
+ 			'onDelete' 	=> '',
+ 			'onError' 	=> '',
+ 		);
+ 	}
 }
 /**
  * @todo the name has to be capTcha
@@ -1105,7 +1201,7 @@ class CapchaControl extends BasicControl implements FormControlInterface{
 	/**
 	 * Generate captcha control html
 	 * 
-	 * special parameters:
+	 * #specific parameters
 	 *	ttf [alger.ttf] - text font
 	 *	ttf_path [BASIC::init()->ini_get(root_virtual).BASIC::init()->ini_get(basic_path)];
 	 *	width [110] - captcha graphic width
@@ -1200,11 +1296,29 @@ class CapchaControl extends BasicControl implements FormControlInterface{
 		
 		return BASIC_SESSION::init()->get(self::$url_var.$id."_code");
 	}
+	function specificParameters(){
+		return array(
+	 		'ttf' 			=> 'alger.ttf',
+	 		'ttf_path' 		=> '',
+	 		'width' 		=> '110',
+	 		'height' 		=> '30',
+	 		'lenght' 		=> '6',
+	 		'mode' 			=> '2',
+	 		'mime' 			=> 'png',
+	 		'text_size' 	=> '17',
+	 		'bg_color' 		=> '#F1F1F1',
+	 		'text_color'	=> '#6F6F6F',
+	 		'line_color'	=> '#D7D7D7',
+	 		'noise_color'	=> '#D7D7D7',
+	 		'num_lines' 	=> '5',
+	 		'noise_level' 	=> '3'
+		);
+	}
 }
 /**
  * @author Evgeni Baldzhiyski
  * @since 12.12.2011
- * @version 0.1
+ * @version 0.3
  * @package basic.generator
  */
 class BrowserControl extends BasicControl implements FormControlInterface{
@@ -1293,12 +1407,14 @@ class BrowserControl extends BasicControl implements FormControlInterface{
 								}
 							}
 						}else{
-							$event =  'onclick="openFolder(\''.$path."/".$file.'\')"';
+							$event =  ' onclick="openFolder(\''.$path."/".$file.'\')"';
+							$devent = '';
 							if($attrs['type'] == 'folder' || $attrs['type'] == 'all'){
-								$event =  'onclick="$path."/".$file(\''.$path."/".$file.'\')" dblclick="openFolder(\''.$path."/".$file.'\')"';
+								$event =  ' onclick="useResource(\''.$path."/".$file.'\')"';
+								$devent = ' ondblclick="openFolder(\''.$path."/".$file.'\')"';
 							}
 							$html .= '
-				<li class="folder"><a href="#" '.$event.'>'.$file.'</a></li>';
+				<li class="folder"'.$devent.'><a href="#"'.$event.'>'.$file.'</a></li>';
 						}
 					}
 					
@@ -1316,11 +1432,11 @@ class BrowserControl extends BasicControl implements FormControlInterface{
 	/**
 	 * Generate browse control html
 	 * 
-	 *  Special parameters:
-	 * 	string type - folder|files|all - by default is "all"
-	 * 	array resources - folder root paths 
-	 * 	array file_types - ex: .com.php,.txt,.pdf, ... 
-	 *  boolean clear_types - 
+	 * #specific parameters
+	 * 	type:String - folder|files|all - by default is "all"
+	 * 	resources:String - folder root paths
+	 * 	file_types:String - ex: .com.php,.txt,.pdf, ... 
+	 *  clear_types:Boolean - 
 	 * 
 	 * @access public
 	 * @param string $name
@@ -1334,22 +1450,30 @@ class BrowserControl extends BasicControl implements FormControlInterface{
  		BASIC::init()->imported('session.mod');
 		BASIC_SESSION::init()->start();
 		
-		if(!isset($this->attributes['type'])) $this->attributes['type'] = 'files';
-		if(!isset($this->attributes['file_types'])) $this->attributes['file_types'] = '.cmp.php';
-		if(!isset($this->attributes['resources'])) $this->attributes['resources'] = array();
-		if(!isset($this->attributes['clear_types'])) $this->attributes['clear_types'] = true;
+		if(!isset($this->attributes['type'])) 			$this->attributes['type'] = 'files';
+		if(!isset($this->attributes['file_types'])) 	$this->attributes['file_types'] = '.cmp.php';
+		if(!isset($this->attributes['resources'])) 		$this->attributes['resources'] = array();
+		if(!isset($this->attributes['clear_types'])) 	$this->attributes['clear_types'] = true;
 		
-		if(!is_array($this->attributes['resources'])) $this->attributes['resources'] = array($this->attributes['resources']);
+		if(!is_array($this->attributes['resources'])) 	$this->attributes['resources'] = explode('|', $this->attributes['resources']);
  		
 		BASIC_SESSION::init()->set(self::$url_var.$name, $this->attributes);
  		
  		return '<table width="100%" cellpadding="0" cellspacing="0" class="ctrl_browser"><tr>
 			<td width="100%">'.BASIC_GENERATOR::init()->createCloseTag('input', $this->attributes).'</td>
-			<td><button type="button" class="btn" onclick="Svincs.MenuTargetModal.open(\''.BASIC::init()->ini_get('root_virtual').'index.php?'.self::$url_var.'='.$name.'\', 500, 400, {setResource: function (name){ $(\'#'.$name.'\').get(0).value=name; Svincs.MenuTargetModal.close();}}, {draggable:false,resizable:false})">'.BASIC_LANGUAGE::init()->get('browse').'</button></td>
+			<td><button type="button" class="btn" onclick="Svincs.MenuTargetModal.open(\''.BASIC::init()->ini_get('root_virtual').'index.php?'.self::$url_var.'='.$name.'&browse_url=\'+$(\'#'.$name.'\').get(0).value.replace(/[^\/]+$/, \'\'), 500, 400, {setResource: function (name){ $(\'#'.$name.'\').get(0).value=name; Svincs.MenuTargetModal.close();}}, {draggable:false,resizable:false})">'.BASIC_LANGUAGE::init()->get('browse').'</button></td>
 		</tr></table>';
 	}
 	protected function htmlGenerator(){
 	
+	}
+	function specificParameters(){
+		return array(
+			'type' 		  => 'files',
+			'resources'   => '',
+			'file_types'  => '.cmp.php',
+			'clear_types' => '1'
+		);
 	}
 }
 /**

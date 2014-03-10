@@ -2,7 +2,7 @@
 /**
 * SBND F&CMS - Framework & CMS for PHP developers
 *
-* Copyright (C) 1999 - 2013, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
+* Copyright (C) 1999 - 2014, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 *
 * @author SBND Techologies Ltd <info@sbnd.net>
 * @package basic.upload
-* @version 7.0.4
+* @version 7.0.6
 */
 
 
@@ -27,7 +27,7 @@
  * Basic uploader class
  *
  * @author Evgeni Baldzhiyski
- * @version 2.3
+ * @version 2.4
  * @since 22.01.2007
  * @package basic.upload
  */
@@ -275,21 +275,27 @@ class BasicUpload {
      */
     function edit($oldFile = ''){
     	if($this->error) return '';
-
+    
     	$file_new_name = $this->_add();
-        if($oldFile && !$this->error){
-    		$this->_delete($oldFile);
-    		
-    		$this->returnName = preg_replace("#^".str_replace("#", "\\#", $this->upDir)."/?#", "", $oldFile);
-	        
-    		if(@rename($this->_path().$file_new_name, $this->_path().$this->returnName)){
-	        	$this->onComplete();
-	            return $this->returnName;
-	        }
-        }
-        $this->onComplete();
-	    return $this->returnName;
-    }   
+    	if($oldFile && !$this->error){
+    		$this->delete($oldFile);
+    
+    		$tmp = preg_replace("#^".str_replace("#", "\\#", $this->upDir)."/?#", "", $oldFile);
+    		$tmp_spl = explode(".", $tmp);
+    		$tmp_count = count($tmp_spl);
+    
+    		if((!$this->type && $tmp_count <= 1) || ($tmp_count > 1 && $this->type == strtolower($tmp_spl[$tmp_count - 1]))){
+    			$this->returnName = $tmp;
+    
+    			if(@rename($this->_path().$file_new_name, $this->_path().$this->returnName)){
+    				$this->onComplete();
+    				return $this->returnName;
+    			}
+    		}
+    	}
+    	$this->onComplete();
+    	return $this->returnName;
+    }
     /**
      * Delete file
      *

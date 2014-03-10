@@ -4,8 +4,7 @@ Disallow: /cgi-bin/
 Disallow: /cmp/
 Disallow: /cms/
 Disallow: /conf/
-Disallow: /swap/
 Disallow: /cp/
 Disallow: /themes/
 
-Sitemap: http://your-domain/sitemap.xml
+Sitemap: sitemap.xml

@@ -2,7 +2,7 @@
 /**
 * SBND F&CMS - Framework & CMS for PHP developers
 *
-* Copyright (C) 1999 - 2013, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
+* Copyright (C) 1999 - 2014, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 *
 * @author SBND Techologies Ltd <info@sbnd.net>
 * @package cms.controlers
-* @version 7.0.4
+* @version 7.0.6
 */
 
 
@@ -340,7 +340,7 @@ class MenuTargetActionPluginModal implements MenuTargetActionPlugin{
  * Default site page controler.
  * 
  * @author Evgeni Baldzhiyski
- * @version 0.2
+ * @version 0.3
  * @package cms.controlers
  */
 class Pages extends Tree implements SearchBarInterface{
@@ -415,6 +415,15 @@ class Pages extends Tree implements SearchBarInterface{
 	 */
 	protected $PAGES = array();
 	/**
+	 * @var hashmap
+	 * @example $this->DANYPAGES = array(
+	 * 		'home' => true,
+	 * 		'my-second-page' => true
+	 * )
+	 * @access private
+	 */
+	protected $DANYPAGES = array();
+	/**
 	 * 
 	 * @todo description
 	 * @var array
@@ -428,6 +437,14 @@ class Pages extends Tree implements SearchBarInterface{
 	 * @access private
 	 */
 	protected $positions_collection = array();
+	/**
+	 * @var array
+	 */
+	protected $_menu_selectors = array();
+	/**
+	 * @var boolean
+	 */
+	protected $_menu_match_complete = false;	
 	/**
 	 * 
 	 * Register target actions
@@ -452,6 +469,25 @@ class Pages extends Tree implements SearchBarInterface{
 	 */
 	function getTargetActions(){
 		return $this->targetActions;
+	}
+	/**
+	 * @param string $name
+	 */
+	function addDanyPage($name){
+		$this->DANYPAGES[$name] = 1;
+	}
+	/**
+	 * @param string $name
+	 */
+	function deleteDanyPage($name){
+		unset($this->DANYPAGES[$name]);
+	}
+	/**
+	 * @param string $name
+	 * @return boolean
+	 */
+	function checkForDanyPage($name){
+		return isset($this->DANYPAGES[$name]);
 	}
 	/**
 	 * 
@@ -574,17 +610,17 @@ class Pages extends Tree implements SearchBarInterface{
 	 * @return string
 	 */
 	function getPageTreeByComponent($cmp_name){
-		$this->getCashURLs();
+		$this->getCacheURLs();
 		
 		if(!isset($this->URLS['cmp'.$cmp_name])){
 			if($res = $this->read(" AND `component_name` = '".$cmp_name."' ")->read()){
 				$res = $this->menuLinksBuilder($res);
-				$this->URLS['cmp'.$cmp_name] = $res['href']."/";
+				$this->URLS['cmp'.$cmp_name] = $res['href'];
 				//$this->URLS['cmp'.$cmp_name] = $this->getPageTreeById((int)$res['_parent_self'], false).$res['name']."/";
 			}else{
 				$this->URLS['cmp'.$cmp_name] = '';
 			}
-			$this->setCashURL('cmp'.$cmp_name, $this->URLS['cmp'.$cmp_name]);
+			$this->setCacheURL('cmp'.$cmp_name, $this->URLS['cmp'.$cmp_name]);
 		}
 		return $this->URLS['cmp'.$cmp_name];
 	}
@@ -604,17 +640,17 @@ class Pages extends Tree implements SearchBarInterface{
 	 * @return string
 	 */
 	function getPageTreeByName($page_name){
-		$this->getCashURLs();
+		$this->getCacheURLs();
 		
 		if(!isset($this->URLS['name'.$page_name])){
 			if($res = $this->read(" AND `name` = '".$page_name."' ORDER BY `_parent_self` ")->read()){
 				$res = $this->menuLinksBuilder($res);
-				$this->URLS['name'.$page_name] =  $res['href']."/";
+				$this->URLS['name'.$page_name] =  $res['href'];
 				//$this->URLS['name'.$page_name] =  $this->getPageTreeById((int)$res['_parent_self']).$page_name."/";
 			}else{
 				$this->URLS['name'.$page_name] = $page_name."/";
 			}
-			$this->setCashURL('name'.$page_name, $this->URLS['name'.$page_name]);
+			$this->setCacheURL('name'.$page_name, $this->URLS['name'.$page_name]);
 		}
 		return $this->URLS['name'.$page_name];
 	}
@@ -626,16 +662,14 @@ class Pages extends Tree implements SearchBarInterface{
 	 * @return string
 	 */
 	function getPageTreeById($id){
-		$this->getCashURLs();
+		$this->getCacheURLs();
 		
 		if(!isset($this->URLS['id'.$id])){
 			if($res = $this->read(" AND `id` = ".$id." ")->read()){
 				$res = $this->menuLinksBuilder($res);				
-				$this->URLS['id'.$id] =  $res['href']."/";
-			}else{
-				$this->URLS['id'.$id] = $page_name."/";
+				$this->URLS['id'.$id] =  $res['href'];
 			}
-			$this->setCashURL('id'.$id, $this->URLS['id'.$id]);
+			$this->setCacheURL('id'.$id, $this->URLS['id'.$id]);
 		}
 		return $this->URLS['id'.$id];
 	}
@@ -647,7 +681,7 @@ class Pages extends Tree implements SearchBarInterface{
 	 * @param integer $parent_id
 	 * @return array
 	 */
-	function getPage($name, $parent_id){
+	function getPage($name, $parent_id = -1){
 		$res = array();
 		
 		if(!$this->PAGES){
@@ -667,8 +701,7 @@ class Pages extends Tree implements SearchBarInterface{
 			$this->PAGES = $PAGES; unset($PAGES);
 		}
 		if(!isset($this->PAGES[$name])){
-			
-			if($res = $this->read(" AND `name` = '".$name."' ".($parent_id ? " AND `_parent_self` = ".(int)$parent_id." " : ""))->read()){
+			if($res = $this->read(" AND `name` = '".$name."' ".($parent_id > -1 ? " AND `_parent_self` = ".(int)$parent_id." " : ""))->read()){
 				$this->PAGES[$name] = $res;
 				
 				$cache = '';
@@ -684,13 +717,14 @@ class Pages extends Tree implements SearchBarInterface{
 						$cache .= "'".$k."'=>'".str_replace("'", "\\'", $v)."'";
 					}
 				}
-				
 				$f = fopen(BASIC::init()->ini_get('root_path').BASIC::init()->ini_get('temporary_path')."navigations/pages_".BASIC_LANGUAGE::init()->current().".php", "a");
 				fwrite($f, "\n".'$PAGES["'.$name.'"] = array('.$cache.');');
 				fclose($f);
 			}
 		}else{
-			$res = $this->PAGES[$name];
+			if(!isset($this->DANYPAGES[$name])){
+				$res = $this->PAGES[$name];
+			}
 		}
 		return $res;
 	}
@@ -704,18 +738,14 @@ class Pages extends Tree implements SearchBarInterface{
 	 * @return array
 	 */
 	function menuLinksBuilder($data){
-					
 		if(!$data['location']){
 			$data['href'] = BASIC_URL::init()->link($this->pagePathBuilder($data['id']), isset($data['urlvars']) ? $data['urlvars'] : '');
 		}else{
 			$data['href'] = str_replace('${INSIDE}', BASIC::init()->virtual(), $data['location']);
 		}
-		
 		if ($data['location'] == '${INSIDE}'){
 			$data['href'] = BASIC_URL::init()->link($this->pagePathBuilder($data['id']), isset($data['urlvars']) ? $data['urlvars'] : '');
 		}
-		
-				
 		$params = array('cmp' => $data['component_name']);
 		if($data['target_params']){
 			foreach(explode("&", $data['target_params']) as $v){
@@ -724,7 +754,6 @@ class Pages extends Tree implements SearchBarInterface{
 				$params[$spl[0]] = $spl[1];
 			}
 		}
-
 		$match = false;
 		foreach ($this->targetActions as $k => $v){
 			if($data['target'] == $v->getOptionValue()){
@@ -733,6 +762,10 @@ class Pages extends Tree implements SearchBarInterface{
 			}
 		}
 		if(!$match) $data['target'] = '';
+		
+		if(substr($data['href'] , -1, 1) != '/'){
+			$data['href'] = "/";
+		}
 		return $data;
 	}
 	/**
@@ -744,6 +777,12 @@ class Pages extends Tree implements SearchBarInterface{
 	 * @return array
 	 */
 	function getMenuData($name, $position_id = 0, $parent_self = 0){
+		if(!$this->page_path_hash){
+			foreach(explode("/", BASIC::init()->scriptName()) as $v){
+				$this->page_path_hash[$v] = 1;
+			}
+		}		
+		
 		$arr = array();
 		$max_depth = int(CMS_SETTINGS::init()->get('NAVIGATION_MAX_DEPTH'));
 		
@@ -753,7 +792,6 @@ class Pages extends Tree implements SearchBarInterface{
 		
 		$rdr = $this->read(" AND `_parent_self` = ".$parent_self." ");
 		while($rdr->read()){
-			
 			$continue = true;
 			if($rdr->item('publish')){
 				foreach($rdr->item('position') as $v){
@@ -762,12 +800,14 @@ class Pages extends Tree implements SearchBarInterface{
 					}
 				}
 			}
-			
 			if($continue){
 				foreach($this->getPageRelations($name, $rdr->item('id'), 0, $max_depth +1 ) as $page){
 					$arr[] = $page;
 				}
 			}else{
+				$rdr->setItems(array(
+						'current' => isset($this->page_path_hash[$rdr->item('name')])
+				));				
 				$arr[] = array(
 					'data' => $this->menuLinksBuilder($rdr->getItems(), true),
 					'childs' => $this->getPageRelations($name, $rdr->item('id'), 0, $max_depth) 
@@ -779,7 +819,7 @@ class Pages extends Tree implements SearchBarInterface{
 	/**
 	 * The get menu support only simple if-else-end construction for current notes
 	 * in version 2.0 neet to use node variable in loop
-	 * Ex: <!-- foreach(${nodes},note) -->
+	 * Ex: <!-- foreach(${nodes},node) -->
 	 * 
 	 * @param string $name
 	 * @param string $template
@@ -796,8 +836,8 @@ class Pages extends Tree implements SearchBarInterface{
 		if(!$position_id = $this->buildMenuColection($name)) return '';
 			
 		$tmp_dir = BASIC::init()->ini_get('root_path').BASIC::init()->ini_get('temporary_path')."navigations";
-		$theme = CMS_SETTINGS::init()->get('SITE_THEME_NAME').'_';
-		if(!$this->checkForMenuCash($theme.$name.'_'.BASIC_LANGUAGE::init()->current(), $template)){
+		$theme = str_replace("/", '_', CMS_SETTINGS::init()->get('SITE_THEME')).'_'.($parent_self ? $parent_self : '');
+		if(!$this->checkForMenuCache($theme.$name.'_'.BASIC_LANGUAGE::init()->current(), $template)){
 			
 			$f = fopen($tmp_dir."/".$theme.$name.'_'.BASIC_LANGUAGE::init()->current().".php", 'w');
 			
@@ -805,57 +845,91 @@ class Pages extends Tree implements SearchBarInterface{
 			
 			$template_source = BASIC_TEMPLATE2::init()->getTemplateSource($template);
 			
-			$template_source = preg_replace('/<!-- if\([^\)]*\$\{note\.current\}[^\)]*\) -->/', 'CASH_CURRENT', $template_source);
+			$template_source = preg_replace('/<!-- if\([^\)]*\$\{note\.current\}[^\)]*\) -->/', 'CACHE_CURRENT', $template_source);
 		
-			$tmp_spl = explode('CASH_CURRENT', $template_source);
+			$tmp_spl = explode('CACHE_CURRENT', $template_source);
 			if(count($tmp_spl) > 1){
 				
-				$template_source = '';//$tmp_spl[0].'CASH_CURRENT#if(isset($RELATIONS[$note["name"]))#';
+				$template_source = '';//$tmp_spl[0].'CACHE_CURRENT#if(isset($RELATIONS[$note["name"]))#';
 				
 				for($i = 1; isset($tmp_spl[$i]); $i++){
 					$flag = '';
 					$first = '';
 					foreach (explode("<!-- end -->", $tmp_spl[$i]) as $end){
 						if(!$first){
-							$first = str_replace('<!-- else -->', 'CASH_CURRENT#}else{#', $end); continue;
+							$first = str_replace('<!-- else -->', 'CACHE_CURRENT#}else{#', $end); continue;
 						}
 						if(!$flag){
-							$flag = 'CASH_CURRENT#}#'.$end;
+							$flag = 'CACHE_CURRENT#}#'.$end;
 						}else{
 							$flag .= '<!-- end -->'.$end;
 						}
 					}
-					if($template_source) $template_source.= 'CASH_CURRENT';
+					if($template_source) $template_source.= 'CACHE_CURRENT';
 					
 					$template_source .= $first.$flag;
 				}
-				
-				$template_source = $tmp_spl[0].'CASH_CURRENT#if(isset($RELATIONS["${note.name}"])){#'.$template_source;
+				$template_source = $tmp_spl[0].'CACHE_CURRENT#if(isset($RELATIONS["${note.name}"])){#'.$template_source;
 			}
+			$template_source = preg_replace_callback('/(<!-- (for|foreach|if)\(([^\)]+)\) -->|<!-- end -->)/', array($this, 'getMenuDanyPagesParser'), $template_source);
 			
 			BASIC_TEMPLATE2::init()->createTemplate("cache-".$template, $template_source, false);
 			
 			$save = BasicTemplatePluginMenu::parser($arr, "cache-".$template);
-			$save = preg_replace("/CASH_CURRENT#([^#]+)#/", "<?php $1 ?>", $save);
+			$save = preg_replace("/CACHE_CURRENT#([^#]+)#/", "<?php $1 ?>", $save);
 			$save = str_replace(BASIC::init()->virtual(), '<?php print BASIC::init()->virtual(); ?>', $save);
 			
 			fwrite($f, $save);
 			fclose($f);
 		}
+		
 		$RELATIONS = $this->page_path_hash;
+		$DANYPAGES = $this->DANYPAGES;
 		
-		ob_start();
-		
-		require($tmp_dir."/".$theme.$name.'_'.BASIC_LANGUAGE::init()->current().".php");
+		ob_start(); require($tmp_dir."/".$theme.$name.'_'.BASIC_LANGUAGE::init()->current().".php");
 		
 		return ob_get_clean();
+	}
+	/**
+	 * @param array $matches
+	 */
+	protected function getMenuDanyPagesParser($matches){
+		if($this->_menu_match_complete){
+			return $matches[0];
+		}
+		if(isset($matches[2])){
+			if(!$this->_menu_selectors && $matches[2] == 'foreach'){
+				$declarations = preg_split('/[ ]*( as |,|=>)[ ]*/', $matches[3]);
+				$var = $declarations[1];
+				if(isset($declarations[2])){
+					$var = $declarations[2];
+				}
+				
+				if($declarations[0] == '${nodes}'){
+					$matches[0] .= 'CACHE_CURRENT#if(!isset($DANYPAGES["${'.$var.'.name}"])){#';
+					$this->_menu_selectors[count($this->_menu_selectors)] = $matches[2];
+				}	
+			}else if(!(!$this->_menu_selectors && $matches[2] != 'foreach')){
+				$this->_menu_selectors[count($this->_menu_selectors)] = $matches[2];
+			}
+			return $matches[0];
+		}else{
+			if(count($this->_menu_selectors) == 1){
+				$this->_menu_match_complete = true;
+				return 'CACHE_CURRENT#}#<!-- end -->';
+			}else{
+				unset($this->_menu_selectors[count($this->_menu_selectors) - 1]);
+				
+				return $matches[0];
+			}
+		}
 	}
 	/**
 	 * 
 	 * Clear cache of the menu
 	 * 
 	 */
-	function clearMenuCash(){
+	function clearMenuCache(){
 		$path = BASIC::init()->ini_get('root_path').BASIC::init()->ini_get('temporary_path')."navigations";
 		if(!is_dir($path)){
 			if(!@mkdir($path)){
@@ -880,7 +954,6 @@ class Pages extends Tree implements SearchBarInterface{
 	 * @return array
 	 */
 	function getPageRelations($menu_name, $parent_self = 0, $level = 0, $max_depth = 0){
-		
 		$results = array();
 		$rdr = $this->read(" AND `_parent_self` = ".$parent_self." ");
 		if((!$max_depth || ($max_depth && $level < $max_depth)) && $position_id = $this->buildMenuColection($menu_name)){
@@ -897,16 +970,20 @@ class Pages extends Tree implements SearchBarInterface{
 							break;
 					}
 				}
-				if($continue) continue;
-				
-				$rdr->setItems(array(
-					'current' => isset($this->page_path_hash[$rdr->item('name')]),
-					//'level' => ($level+1)
-				));
-				$results[] = array(
-					'data' => $this->menuLinksBuilder($rdr->getItems()),
-					'childs' => $this->getPageRelations($menu_name, $rdr->item('id'), $level+1, $max_depth)
-				);
+				if($continue){
+					foreach($this->getPageRelations($menu_name, $rdr->item('id'), 0, $max_depth +1 ) as $page){
+						$results[] = $page;
+					}
+				}else{
+					$rdr->setItems(array(
+						'current' => isset($this->page_path_hash[$rdr->item('name')]),
+						//'level' => ($level+1)
+					));
+					$results[] = array(
+						'data' => $this->menuLinksBuilder($rdr->getItems()),
+						'childs' => $this->getPageRelations($menu_name, $rdr->item('id'), $level+1, $max_depth)
+					);
+				}
 			}
 		}
 		return $results;
@@ -921,7 +998,7 @@ class Pages extends Tree implements SearchBarInterface{
 	 */
 	protected function pagePathBuilder($id, $cached = true){
 		if($cached){
-			$this->getCashURLs();
+			$this->getCacheURLs();
 			
 			if(!isset($this->URLS[$id])){
 				if($res = $this->read(" AND `id` = ".$id." ")->read()){
@@ -929,7 +1006,7 @@ class Pages extends Tree implements SearchBarInterface{
 				}else{
 					$this->URLS[$id] = '';
 				}
-				$this->setCashURL($id, $this->URLS[$id]);
+				$this->setCacheURL($id, $this->URLS[$id]);
 			}
 			return $this->URLS[$id];
 		}else{
@@ -944,7 +1021,7 @@ class Pages extends Tree implements SearchBarInterface{
 	 * Get cache urls
 	 * @access private
 	 */
-	protected function getCashURLs(){
+	protected function getCacheURLs(){
 		if($this->URLS === null){
 			$URLS = array(); if(!@include_once(BASIC::init()->ini_get('root_path').BASIC::init()->ini_get('temporary_path')."navigations/urls_".BASIC_LANGUAGE::init()->current().".php")){
 				$f = fopen(BASIC::init()->ini_get('root_path').BASIC::init()->ini_get('temporary_path')."navigations/urls_".BASIC_LANGUAGE::init()->current().".php", "w");
@@ -961,7 +1038,7 @@ class Pages extends Tree implements SearchBarInterface{
 	 * @param string $url
 	 * @access private
 	 */
-	protected function setCashURL($key, $url){
+	protected function setCacheURL($key, $url){
 		$f = fopen(BASIC::init()->ini_get('root_path').BASIC::init()->ini_get('temporary_path')."navigations/urls_".BASIC_LANGUAGE::init()->current().".php", 'a');
 		fwrite($f, "\n".'$URLS["'.$key.'"] = "'.$url.'";');
 		fclose($f);
@@ -986,6 +1063,14 @@ class Pages extends Tree implements SearchBarInterface{
 		return $this->positions_collection[$name];
 	}
 	/**
+	 * @return hashmap
+	 */
+	public function getMenuPositionsNames(){
+		$this->buildMenuColection('');
+		
+		return $this->positions_collection;
+	}
+	/**
 	 * 
 	 * Check for cache of the menu
 	 * 
@@ -994,7 +1079,7 @@ class Pages extends Tree implements SearchBarInterface{
 	 * @throws Exception
 	 * @return boolean
 	 */
-	public function checkForMenuCash($name, $template){
+	public function checkForMenuCache($name, $template){
 		$tmp_dir = BASIC::init()->ini_get('root_path').BASIC::init()->ini_get('temporary_path')."navigations";
 		if(!is_dir($tmp_dir)){
 			if(!@mkdir($tmp_dir)){
@@ -1029,7 +1114,6 @@ class Pages extends Tree implements SearchBarInterface{
 			}
 		}
 	}
-	
 	/**
 	 * This method will be called only from cms.controlers.front.Builder.mod
 	 * 
@@ -1037,7 +1121,7 @@ class Pages extends Tree implements SearchBarInterface{
 	 * @see SearchBarInterface::getMatchData()
 	 * @access public
 	 */
-	public function getMatchData($criteria){
+	public function getMatchData($criteria, $lenght_short_search_results){
 		$res = array();
 		$rdr = $this->read(" AND (".SearchBar::buildSqlCriteria(array('name', 'title', 'body'), array($criteria[0])).") ");
 		if(!$rdr->num_rows()){
@@ -1045,6 +1129,8 @@ class Pages extends Tree implements SearchBarInterface{
 			$rdr = $this->read(" AND (".SearchBar::buildSqlCriteria(array('name', 'title', 'body'), $criteria).") ");
 		}
 		while($rdr->read()){
+			if(isset($this->DANYPAGES[$rdr->item('name')])) continue;
+			
 			$rdr->setItem('href', BASIC_URL::init()->link(BASIC::init()->ini_get('root_virtual').
 				Builder::init()->pagesControler->getPageTreeById($rdr->item('id'))));
 			

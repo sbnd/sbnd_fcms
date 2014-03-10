@@ -109,13 +109,6 @@ class Profiles extends CmsComponent{
 	protected $additionals_fields = array();
 	/**
 	 * 
-	 * Countries list
-	 * @var array
-	 * @access private
-	 */
-	protected $countries = array();
-	/**
-	 * 
 	 * Languages list
 	 * @var array
 	 * @access private
@@ -136,27 +129,6 @@ class Profiles extends CmsComponent{
    			}
      		$this->users_types[$rdr->item('id')] = $rdr->getItems();
     	}
-    }
-    /**
-     * 
-     * Set countries array
-     */
-    function getCountries(){
-    	if(!$this->countries){
-    		$rdr = Builder::init()->build('countries', false)->read();
-    		if($rdr->num_rows()){
-    			$this->countries = $rdr->getSelectData('id', 'name', array('' => ' '));
-    		}else{
-    			$this->countries = array(
-    				'United Kingdom',
-    				'United States',
-    				'Bulgaria',
-    				'France',
-    				'Germany'
-    			);
-    		}
-    	}
-    	return $this->countries;
     }
     /**
      * 
@@ -239,11 +211,6 @@ class Profiles extends CmsComponent{
 		$this->setField('city', array(
 			'text' => BASIC_LANGUAGE::init()->get('City')
 		));
-		$this->setField('countries', array(
-			'text' => BASIC_LANGUAGE::init()->get('countries'),
-			'formtype' => 'select',
-			'dbtype' => 'int'
-	 	));
 		if($this->use_avatar){
 			$this->setField('avatar', array(
 				'text' 		=> BASIC_LANGUAGE::init()->get('photo_of_the_institution'),
@@ -342,8 +309,9 @@ class Profiles extends CmsComponent{
 	function startPanel(){
 	    $this->sorting = new BasicSorting(BASIC_USERS::init()->name_column, false, $this->prefix);
         $this->users_types_fields();
-		$this->filter = new BasicFilter($this->prefix);
-		$this->filter->template($this->template_filter);
+
+		$this->filter = new BasicFilter($this->prefix, $this->filter_buttons, $this->template_filter);
+		
  		$this->filter->field('perm_column', array(
  			'text' => BASIC_LANGUAGE::init()->get(BASIC_USERS::init()->perm_column),
 			'formtype' => 'radio',
@@ -363,9 +331,6 @@ class Profiles extends CmsComponent{
 	 	else{
 	    	$this->delAction('profiles-types');
 	    }
-	    if(BASIC_USERS::init()->getPermission("countries", 'list')){
-	    	$this->addAction('countries', 'goToChild', BASIC_LANGUAGE::init()->get('countries'), 1);
-	    }
 	    $this->startManager();
 		
 	    $this->system[] = $this->special_action_var_name;
@@ -381,6 +346,10 @@ class Profiles extends CmsComponent{
 		}else{
 			if($this->cmd == 'edit' || $this->cmd == 'add' || $this->cmd == 'save'){
 				BASIC_URL::init()->set($this->special_action_var_name, ($this->cmd == 'save' ? BASIC_URL::init()->request($this->special_action_var_name) : $this->cmd));
+			
+				if($this->cmd == 'edit' && $this->id && !$this->messages){
+					$this->ActionLoad($this->id);
+				}
 			}else{
 				BASIC_URL::init()->un($this->special_action_var_name);
 			}
@@ -432,15 +401,7 @@ class Profiles extends CmsComponent{
 	 * @see CmsComponent::ActionFormEdit()
 	 */
 	function ActionFormEdit($id = 0){
-		$this->updateField('countries', array(
-			'attributes' => array(
-				'data' => $this->getCountries()
-			)
-		));
-				
-	    if($id && !$this->messages) $this->ActionLoad($id);
-        
-        if($id == BASIC_USERS::init()->getUserId()){
+	    if($id == BASIC_USERS::init()->getUserId()){
         	$this->updateField(BASIC_USERS::init()->level_column, array(
         		'formtype' => 'hidden'
         	));
@@ -547,7 +508,7 @@ class Profiles extends CmsComponent{
         	$err = $this->setMessage('email',3);
         }
         if(!$err){
-        	$this->googleGeoCode();
+        	//$this->googleGeoCode();
         	
             if($this->getDataBuffer(BASIC_USERS::init()->pass_column)){
 	        	$this->setDataBuffer(

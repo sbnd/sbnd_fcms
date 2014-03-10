@@ -2,42 +2,25 @@
 <!-- if(${search_results}) -->
 	<h3><!-- lingual(search_results_number) --> <span class="badge badge-info">${count_results}</span></h3>
 	<!-- foreach(${search_results},row) -->
-		
-			<!-- if(${row.target_name} == 'pages') -->
-				<div class="well">
-					<a href="${row.href}" >${row.title}</a>
-					<p>${row.body}</p>
-				</div>
-				
-			<!-- elseif(${row.target_name} == 'evgeny_test_1') -->
-				<div class="well">
-					<a href="${row.href}" >${row.name}</a>
-				</div>
-				
-			<!-- elseif(${row.target_name} == 'product_catalog') -->
-				<div class="well">
-					<a href="${row.href}" >${row.name}</a>
-					<p>${row.body}</p>
-				</div>
-					
-			<!-- elseif(${row.target_name} == 'catalog_news') -->
-				<div class="well">
-					<a href="${row.href}" >${row.name}</a>
-					<p>${row.body}</p>
-				</div>
-					
-			<!-- elseif(${row.target_name} == 'b_simple_news') -->
-				<div class="well">
-					<a href="${row.href}" >${row.name}</a>
-					<p>${row.body}</p>
-				</div>
-						
-			<!-- elseif(${row.target_name} == 'FAQ') -->
-				<div class="well">
-					<a href="${row.href}" >${row.name}</a>
-					<p>${row.body}</p>
-				</div>
+			<!-- if(${row.target_name} == 'pages') --><!-- end -->
+
+			<div class="well">
+			<!-- if(${row.title}) -->
+				<a href="${row.href}" >${row.title}</a>
+			<!-- elseif(${row.name}) -->
+				<a href="${row.href}" >${row.name}</a>
+			<!-- elseif(${row.public_name}) -->
+				<a href="${row.href}" >${row.public_name}</a>
 			<!-- end -->
+				
+			<!-- if(${row.body}) -->
+				<p>${row.body}</p>
+			<!-- elseif(${row.short_desc}) -->
+				<p>${row.short_desc}</p>
+			<!-- elseif(${row.desc}) -->
+				<p>${row.desc}</p>
+			<!-- end -->
+			</div>
 			
 	<!-- end -->
 	

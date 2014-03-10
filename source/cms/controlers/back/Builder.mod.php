@@ -2,7 +2,7 @@
 /**
 * SBND F&CMS - Framework & CMS for PHP developers
 *
-* Copyright (C) 1999 - 2013, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
+* Copyright (C) 1999 - 2014, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 *
 * @author SBND Techologies Ltd <info@sbnd.net>
 * @package cms.controlers.back
-* @version 7.0.4  
+* @version 7.0.6  
 */
 
 BASIC::init()->imported('builder.mod','cms');
@@ -48,9 +48,9 @@ class Builder extends BuilderComponent {
 	 * 
 	 * Default record is 'system' (menu)
 	 * 
-	 * @var unknown_type
+	 * @var string
 	 */
-	var $group_container = 'module_groups';
+	var $group_container = 'module-groups';
 	/**
 	 * Create Builder object using singleton pattern
 	 * 
@@ -126,11 +126,9 @@ class Builder extends BuilderComponent {
 	 * @return array
 	 */
 	function getMenu($id = 0, $level = 0){
-		
 		$menu = array();
 		
-		$rdr = BASIC_SQL::init()->read_exec(" SELECT * FROM `".$this->group_container."` WHERE 1=1 AND `_parent_self` = ".$id." ");
-		
+		$rdr = $this->build($this->group_container, false)->read(" AND `_parent_self` = ".$id." ");
 		while($rdr->read()){
 			if(!$level) $this->_tmp_current = false;
 			
@@ -150,7 +148,7 @@ class Builder extends BuilderComponent {
 						'data'    => array(
 							'level'   => $level+1,
 							'title'   => $obj->public_name,
-							'href'    => $obj->link."?".$this->nameUrlVar.'='.$obj->prefix.$obj->system_name,
+							'href'    => $obj->link."?".$this->nameUrlVar.'='.$obj->system_name,
 							'tooltip' => $obj->tooltip,
 							'target'  => $obj->target,
 							'current' => $item_current,
@@ -192,7 +190,7 @@ class Builder extends BuilderComponent {
 					'data'    => array(
 						'level'   => $level,
 						'title'   => $obj->public_name,
-						'href'    => $obj->link."?".$this->nameUrlVar.'='.$obj->prefix.$obj->system_name,
+						'href'    => $obj->link."?".$this->nameUrlVar.'='.$obj->system_name,
 						'tooltip' => $obj->tooltip,
 						'target'  => $obj->target,
 						'current' => $item_current,

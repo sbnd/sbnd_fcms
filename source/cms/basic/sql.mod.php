@@ -2,7 +2,7 @@
 /**
 * SBND F&CMS - Framework & CMS for PHP developers
 *
-* Copyright (C) 1999 - 2013, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
+* Copyright (C) 1999 - 2014, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 *
 * @author SBND Techologies Ltd <info@sbnd.net>
 * @package basic.sql
-* @version 7.0.4
+* @version 7.0.6
 */
 
 
@@ -611,6 +611,9 @@ class BasicSqlTable{
 		if(!$group) $group = $name;
 		
 		if(isset($this->keys[$group])){
+			if($is_unique){
+				$this->keys[$group]['unique'] = true;
+			}
 			$this->keys[$group]['fields'][] = $name; 
 		}else{
 			$this->keys[$group] = array(
@@ -885,7 +888,7 @@ class BASIC_SQL{
 	 * @param string $sql
 	 * @param boolean [$clean]
 	 */
-	function append($sql,$clean=false){
+	function append($sql, $clean = false){
 		if($clean) $this->clean();
 
 		$this->buffer .= $sql;
@@ -907,7 +910,7 @@ class BASIC_SQL{
 	function exec($query){
 		if(!$this->obj){ throw new Exception('No connection!'); return false; }
 		
-		if($query) $this->append($query,true);
+		if($query) $this->append($query, true);
 		if(!$this->buffer || !$query) return false;
 
 		$runtime = $this->runTimeQuery();
@@ -962,7 +965,7 @@ class BASIC_SQL{
 		if(!$this->obj){ throw new Exception('No connection!'); return false; }
 		
 		if($query){
-			$this->append($query,true);
+			$this->append($query, true);
 		}else{
 			return false;
 		}
@@ -1349,6 +1352,55 @@ class _MySql implements SqlDriverInterface{
 	function createDatabase($name, $charset){
 		return $this->query(" CREATE DATABASE `".$name."`".($charset ? " DEFAULT CHARACTER SET ".$charset : ""));
 	}
+			
+	/**
+	 * @param BasicSqlTable $data
+	 * @return string
+	 */
+		protected function _parseColumns($data){
+			$query = '';
+			
+			$structure = $data->data();
+			foreach ($structure['fields'] as $fname => $field){
+				if($query) $query .= ",\n";
+					
+				if($field['type'] == 'longtext' || $field['type'] == 'mediumtext'){
+					$field['default'] = '';
+					$field['length'] = null;
+				}else if($field['type'] == 'date' || $field['type'] == 'datetime'){
+					if($field['null']){
+						$field['default'] = '0000-00-00'.($field['type'] == 'datetime' ? ' 00:00:00' : '');
+					}
+				}else if($field['type'] == 'int' || $field['type'] == 'float'){
+					if($field['null']){
+						$field['default'] = '0';
+					}
+				}else{
+					if($field['null']){
+						$field['null'] = "'".str_replace("'", "\\'", $field['null'])."'";
+					}
+				}
+					
+				$query .= "`".$fname."` ".$field['type'].($field['length'] !== null ? "(".$field['length'].")" : '').
+				(!$field['null'] ? " NOT" : "")." NULL ".((string)$field['default'] != '' ? "DEFAULT ".$field['default'] : '')." ";
+			}
+			return $query;
+		}
+	/**
+	 * @param BasicSqlTable $data
+	 * @return string
+	 */
+		protected function _parseKeys($data){
+			$query = '';
+			
+			$structure = $data->data();
+			foreach ($structure['keys'] as $kname => $key){
+				if($query) $query .= ",\n";
+				
+				$query .= ($key['unique'] ? "UNIQUE " : "")."KEY `".$kname."` (`".implode("`,`", $key['fields'])."`) ";
+			}
+			return $query;
+		}
 	/**
 	 * 
 	 * 
@@ -1356,7 +1408,7 @@ class _MySql implements SqlDriverInterface{
 	 * 
 	 * @param string $idname
 	 * @param string $name
-	 * @param object $data
+	 * @param BasicSqlTable $data
 	 * @param string $type
 	 * 
 	 * @see SqlDriverInterface::createTable()
@@ -1370,34 +1422,8 @@ class _MySql implements SqlDriverInterface{
 			$structure = $data->data();
 			
 			if($structure['fields']){
-				foreach ($structure['fields'] as $fname => $field){
-					if($query) $query .= ",\n";
-					
-					if($field['type'] == 'longtext' || $field['type'] == 'mediumtext'){
-						$field['default'] = '';
-						$field['length'] = null;
-					}else if($field['type'] == 'date' || $field['type'] == 'datetime'){
-						if($field['null']){
-							$field['default'] = '0000-00-00'.($field['type'] == 'datetime' ? ' 00:00:00' : '');
-						}
-					}else if($field['type'] == 'int' || $field['type'] == 'float'){
-						if($field['null']){
-							$field['default'] = '0';
-						}
-					}else{
-						if($field['null']){
-							$field['null'] = "'".str_replace("'", "\\'", $field['null'])."'";
-						}
-					}
-					
-					$query .= "`".$fname."` ".$field['type'].($field['length'] !== null ? "(".$field['length'].")" : '').
-						(!$field['null'] ? " NOT" : "")." NULL ".($field['default'] ? "DEFAULT ".$field['default'] : '')." ";
-				}
-				foreach ($structure['keys'] as $kname => $key){
-					if($query) $query .= ",\n";
-					
-					$query .= ($key['unique'] ? "UNIQUE " : "")."KEY `".$kname."` (`".implode("`,`", $key['fields'])."`) ";
-				}
+				$query .= $this->_parseColumns($data);
+				$query .= $this->_parseKeys($data);
 			}else{
 				$data = null;
 			}
@@ -1418,7 +1444,6 @@ class _MySql implements SqlDriverInterface{
 		if($type){
 			$query .= " ENGINE=".$type."";
 		}
-
 		return mysql_query($query, $this->connect);
 	}
 	/**
@@ -1430,7 +1455,15 @@ class _MySql implements SqlDriverInterface{
 	 * @see SqlDriverInterface::createColumn()
 	 */
 	function createColumn($tbl, $data){
-		return mysql_query("ALTER TABLE `".$tbl."` ADD ".$data." ", $this->connect);
+		if($data instanceof BasicSqlTable){
+			$query = $this->_parseColumns($data);
+		}else if($data){
+			$query = $data;
+		}
+		if($query){
+			return mysql_query("ALTER TABLE `".$tbl."` ADD ".$query." ", $this->connect);
+		}
+		return false;
 	}
 	/**
 	 * Drop column query
@@ -1623,6 +1656,54 @@ class _MySqli implements SqlDriverInterface{
 		return $this->query(" CREATE DATABASE `".$name."`".($charset ? " DEFAULT CHARACTER SET ".$charset : ""));
 	}
 	/**
+	 * @param BasicSqlTable $data
+	 * @return string
+	 */
+		protected function _parseColumns($data){
+			$query = '';
+			
+			$structure = $data->data();
+			foreach ($structure['fields'] as $fname => $field){
+				if($query) $query .= ",\n";
+					
+				if($field['type'] == 'longtext' || $field['type'] == 'mediumtext'){
+					$field['default'] = '';
+					$field['length'] = null;
+				}else if($field['type'] == 'date' || $field['type'] == 'datetime'){
+					if(!$field['null']){
+						$field['default'] = '0000-00-00'.($field['type'] == 'datetime' ? ' 00:00:00' : '');
+					}
+				}else if($field['type'] == 'int' || $field['type'] == 'float'){
+					if(!$field['null']){
+						$field['default'] = '0';
+					}
+				}else{
+					if($field['default']){
+						$field['default'] = "'".str_replace("'", "\\'", $field['default'])."'";
+					}
+				}
+					
+				$query .= "`".$fname."` ".$field['type'].($field['length'] !== null ? "(".$field['length'].")" : '').
+				(!$field['null'] ? " NOT" : "")." NULL ".((string)$field['default'] != '' ? "DEFAULT ".$field['default'] : '')." ";
+			}
+			return $query;
+		}
+	/**
+	 * @param BasicSqlTable $data
+	 * @return string
+	 */
+		protected function _parseKeys($data){
+			$query = '';
+				
+			$structure = $data->data();
+			foreach ($structure['keys'] as $kname => $key){
+				if($query) $query .= ",\n";
+					
+				$query .= ($key['unique'] ? "UNIQUE " : "")."KEY `".$kname."` (`".implode("`,`", $key['fields'])."`) ";
+			}
+			return $query;
+		}
+	/**
 	 * Create table query
 	 * @param string $idname
 	 * @param string $name
@@ -1639,43 +1720,14 @@ class _MySqli implements SqlDriverInterface{
 			$structure = $data->data();
 			
 			if($structure['fields']){
-				foreach ($structure['fields'] as $fname => $field){
-					if($query) $query .= ",\n";
-					
-					if($field['type'] == 'longtext' || $field['type'] == 'mediumtext'){
-						$field['default'] = '';
-						$field['length'] = null;
-					}else if($field['type'] == 'date' || $field['type'] == 'datetime'){
-						if(!$field['null']){
-							$field['default'] = '0000-00-00'.($field['type'] == 'datetime' ? ' 00:00:00' : '');
-						}
-					}else if($field['type'] == 'int' || $field['type'] == 'float'){
-						if(!$field['null']){
-							$field['default'] = '0';
-						}
-					}else{
-						if($field['default']){
-							$field['default'] = "'".str_replace("'", "\\'", $field['default'])."'";
-						}
-					}
-					
-					$query .= "`".$fname."` ".$field['type'].($field['length'] !== null ? "(".$field['length'].")" : '').
-						(!$field['null'] ? " NOT" : "")." NULL ".($field['default'] ? "DEFAULT ".$field['default'] : '')." ";
-				}
-				foreach ($structure['keys'] as $kname => $key){
-					if($query) $query .= ",\n";
-					
-					$query .= ($key['unique'] ? "UNIQUE " : "")."KEY `".$kname."` (`".implode("`,`", $key['fields'])."`) ";
-				}
-			}else{
-				$data = null;
+				$query .= ",";
+				$query .= $this->_parseColumns($data);
+				$query .= $this->_parseKeys($data);
 			}
-		}else{
-			if($data){
-				if($query) $query .= ",";
-				
-				$query .= preg_replace('/,[ ]*$/', '', $data);
-			}
+		}else if($data){
+			if($query) $query .= ",";
+			
+			$query .= preg_replace('/,[ ]*$/', '', $data);
 		}
 		if($idname){
 			if($query) $query .= ",";
@@ -1699,7 +1751,15 @@ class _MySqli implements SqlDriverInterface{
 	 * @see SqlDriverInterface::createColumn()
 	 */
 	function createColumn($tbl, $data){
-		return  mysqli_query($this->connect, "ALTER TABLE `".$tbl."` ADD ".$data." ");
+		if($data instanceof BasicSqlTable){
+			$query = $this->_parseColumns($data);
+		}else if($data){
+			$query = $data;
+		}
+		if($query){
+			return  mysqli_query($this->connect, "ALTER TABLE `".$tbl."` ADD ".$query." ");
+		}
+		return false;
 	}
 	/**
 	 * Drop column in table

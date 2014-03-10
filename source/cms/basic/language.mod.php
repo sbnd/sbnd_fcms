@@ -2,7 +2,7 @@
 /**
 * SBND F&CMS - Framework & CMS for PHP developers
 *
-* Copyright (C) 1999 - 2013, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
+* Copyright (C) 1999 - 2014, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 *
 * @author SBND Techologies Ltd <info@sbnd.net>
 * @package basic.language
-* @version 7.0.4  
+* @version 7.0.6  
 */
 
 /**
@@ -27,7 +27,8 @@
  * This object is autoinstanced -  its object variable is $GLOBALS['BASIC_LANG']
  *
  * @author Evgeni Baldzisky
- * @version 0.5 [13-02-2007]
+ * @version 0.6
+ * @since 13.02.2007
  * @package basic.language
  */
 class BASIC_LANGUAGE extends BASIC_CLASS {
@@ -192,8 +193,10 @@ class BASIC_LANGUAGE extends BASIC_CLASS {
 			if($this->logMethod == 'session'){
 				BASIC_SESSION::init()->set($this->varLog, $this->current);
 				setcookie($this->varLog, '', null, '/');
+				$_COOKIE[$this->varLog] = '';
 			}else{
 				setcookie($this->varLog, $this->current, null, '/');
+				$_COOKIE[$this->varLog] = $this->current;
 			}
 			$this->_load();	
 		}
@@ -327,23 +330,37 @@ class BASIC_LANGUAGE extends BASIC_CLASS {
 
 			$err = BASIC_ERROR::init()->error();
 			if($err['code'] == 1146){
-				$data = " `variable` varchar(255) NOT NULL, ";
-				foreach ($this->language as $k => $v){
-					$data .= " `value_".$k."` VARCHAR(255) DEFAULT NULL, ";
-				}
-				$data .= " UNIQUE KEY `variable` (`variable`) ";
-				BASIC_SQL::init()->createTable('id',$this->container, $data);
+				$table = new BasicSqlTable();
 				
-				$GLOBALS['BASIC_ERROR']->clean();
-				$this->_load();
+				$table->field('variable', 'varchar', 255);
+				foreach ($this->language as $k => $v){
+					$table->field('value_'.$k, 'varchar', 500, true);
+				}
+				$table->key('variable', 'variable', true);
+				
+				if(BASIC_SQL::init()->createTable('id',$this->container, $table)){
+					$GLOBALS['BASIC_ERROR']->clean();
+					$this->_load();
+				}
 				return;
 			}elseif($err['code'] == 1054){
+				$table = new BasicSqlTable();
 				
-				preg_match("/column( name)? '([^']+)'/",$err['message'],$math);
-				BASIC_SQL::init()->createColumn($this->container," `".$math[2]."` VARCHAR(255) DEFAULT NULL ");
-				
-				BASIC_ERROR::init()->clean();
-				$this->_load();
+				preg_match("/column( name)? '([^']+)'/", $err['message'], $match);
+				if(isset($match[2])){
+					$spl = explode(".", $match[2]);
+					$match[2] = $spl[count($spl) - 1];
+					
+					if($match[2] == 'variable'){
+						$table->field('variable', 'varchar', 255, false);
+					}else{
+						$table->field($match[2], 'varchar', 500, true);
+					}
+					if(BASIC_SQL::init()->createColumn($this->container, $table)){
+						BASIC_ERROR::init()->clean();
+						$this->_load();
+					}
+				}
 				return;
 			}
 			if($rdr->num_rows() != 0){

@@ -2,7 +2,7 @@
 /**
 * SBND F&CMS - Framework & CMS for PHP developers
 *
-* Copyright (C) 1999 - 2013, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
+* Copyright (C) 1999 - 2014, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 *
 * @author SBND Techologies Ltd <info@sbnd.net>
 * @package default_site_config
-* @version 7.0.4  
+* @version 7.0.6  
 */
 
 /**
@@ -50,9 +50,6 @@ try{
 	
 	// if have server's alias with different names
 	//BASIC::init()->ini_set('root_virtual', 'http://... root site url .../');
-	
-	BASIC::init()->imported('TinyMCE', 'plugins/tinymce');
-	BASIC_GENERATOR::init()->registrateControle('html', new TinyMCE());
 }catch (Exception $e){
 	die(BASIC_GENERATOR::init()->element('div', 'style=color:#FF0000;font-size:12pt;', $e->getMessage()));
 }

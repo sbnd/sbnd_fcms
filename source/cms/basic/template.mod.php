@@ -2,7 +2,7 @@
 /**
 * SBND F&CMS - Framework & CMS for PHP developers
 *
-* Copyright (C) 1999 - 2013, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
+* Copyright (C) 1999 - 2014, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 *
 * @author SBND Techologies Ltd <info@sbnd.net>
 * @package basic.template
-* @version 7.0.4
+* @version 7.0.6
 */
 
 
@@ -37,10 +37,10 @@ interface BasicTemplateDriverInterface {
 	function parse($template_name, $scope = '', $vars = array());
 	
 	function getTemplateSource($template_name);
-	function getCashTime($template_name);
+	function getCacheTime($template_name);
 	function getTemplateTime($template_name);
 	
-	function clearCash($name = '');
+	function clearCache($name = '');
 }
 /**
  * Service which implements the formatting of the displayed information.
@@ -162,20 +162,20 @@ class BASIC_TEMPLATE2 implements BasicTemplateDriverInterface{
 	/**
 	 * Clear db's(if the driver->method is 'db') template's list or the name element from this list.
 	 * 
-	 * @see BasicTemplateDriverInterface::clearCash()
+	 * @see BasicTemplateDriverInterface::clearCache()
 	 * @param string $name
 	 * @access public
 	 */
-	public function clearCash($name = ''){
-		return $this->driver->clearCash($name);
+	public function clearCache($name = ''){
+		return $this->driver->clearCache($name);
 	}
 	/**
 	 * Get cache time
-	 * @see BasicTemplateDriverInterface::getCashTime()
+	 * @see BasicTemplateDriverInterface::getCacheTime()
 	 * @param string $template_name
 	 */
-	function getCashTime($template_name){
-		return $this->driver->getCashTime($template_name);
+	function getCacheTime($template_name){
+		return $this->driver->getCacheTime($template_name);
 	}
 	/**
 	 * Get template time
@@ -900,11 +900,24 @@ class TemplateDriverBasic implements BasicTemplateDriverInterface{
 	 * 
 	 * @param string $name
 	 */
-	function clearCash($name = ''){
+	function clearCache($name = ''){
 		if(!$name){
-			$this->templatez_list_db_cache = array();
+			if($this->method == 'db'){
+				$this->templatez_list_db_cache = array();
+			}else{
+				$dir = @opendir(BASIC::init()->ini_get('root_path').$this->template_cpath);
+				while ($file = @readdir($dir)) {
+					if($file == '.' || $file == '..') continue;
+					
+					unlink(BASIC::init()->ini_get('root_path').$this->template_cpath."/".$file);
+				}
+			}
 		}else{
-			unset($this->templatez_list_db_cache[$name]);
+			if($this->method == 'db'){
+				unset($this->templatez_list_db_cache[$name]);
+			}else{
+				unlink(BASIC::init()->ini_get('root_path').$this->template_cpath."/".$this->prefix_ctemplate.$name.'.php');
+			}
 		}
 	}
 	/**
@@ -1084,7 +1097,7 @@ class TemplateDriverBasic implements BasicTemplateDriverInterface{
 	 * @param string $template_name
 	 * @return integer
 	 */
-	function getCashTime($template_name){
+	function getCacheTime($template_name){
 		if(file_exists(BASIC::init()->ini_get('root_path').$this->template_cpath.'/'.$this->prefix_ctemplate.$template_name.'.php')){
 			return @filemtime(BASIC::init()->ini_get('root_path').$this->template_cpath.'/'.$this->prefix_ctemplate.$template_name.'.php');
 		}else{

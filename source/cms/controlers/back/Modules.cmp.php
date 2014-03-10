@@ -34,7 +34,7 @@
  * @package cms.controlers.back
  */
 class Modules extends Tree{
-	public $breadcrumps = 'name';
+	public $breadcrumps = 'name'; 
 	/**
 	 * 
 	 * Main function - the constructor of the component
@@ -116,7 +116,7 @@ class Modules extends Tree{
 		
 		$this->specialTest = 'fieldValidator';
 		
-		$this->addAction('module-groups', 'goToChild', BASIC_LANGUAGE::init()->get('cms_cmp_module_groups'));
+		$this->addAction('module-groups', 'goToComponent', BASIC_LANGUAGE::init()->get('cms_cmp_module_groups'));
 	}
 	/**
 	 * 
@@ -132,8 +132,8 @@ class Modules extends Tree{
 		$this->map('public_name',   BASIC_LANGUAGE::init()->get('modul_public_name_label'));
 		$this->map('admin_support', BASIC_LANGUAGE::init()->get('module_admin_group_field'), 'mapFormatter', 'style=text-align:right');
 		
-		$this->filter = new BasicFilter($this->prefix, BASIC_LANGUAGE::init()->get('filter'), $this->template_filter);
-		
+		$this->filter = new BasicFilter($this->prefix, $this->filter_buttons, $this->template_filter);
+
 		$this->filter->field('cmp_settings', array(
 			'text' => BASIC_LANGUAGE::init()->get('module_settings'),
 			'filter' => ' AND `cmp_settings` LIKE "%{v}%" '
@@ -157,9 +157,12 @@ class Modules extends Tree{
 			));		
 			$cmp = Builder::init()->build($this->getDataBuffer('name'));
 			
-			if(method_exists($cmp, 'prepareCofiguration')){
+			if(method_exists($cmp, 'prepareCofiguration') && $cmp->prepareCofiguration(true)){
 				$op = BASIC_URL::init()->other($this->dataBuffer['cmp_settings'], null, $this->cleanerDecision($this->fields['cmp_settings'][3], false, $this->fields['cmp_settings'][7]));
 				$tmp = unserialize(BASIC_URL::init()->other($this->dataBuffer['cmp_settings'], null, $this->cleanerDecision($this->fields['cmp_settings'][3], $direction, $this->fields['cmp_settings'][7])));
+				if(!$tmp && method_exists($cmp, 'settingsData')){
+					$tmp = $cmp->settingsData();
+				}
 				$tmp['prepareCofiguration'] = 1;
 				
 				$this->dataBuffer['cmp_settings'] = serialize(BASIC_URL::init()->other($tmp, null, $this->cleanerDecision($this->fields['cmp_settings'][3], true, $this->fields['cmp_settings'][7])));

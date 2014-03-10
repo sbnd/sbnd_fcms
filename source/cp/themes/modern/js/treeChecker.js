@@ -1,7 +1,7 @@
 /**
 * SBND F&CMS - Framework & CMS for PHP developers
 *
-* Copyright (C) 1999 - 2013, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
+* Copyright (C) 1999 - 2014, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
 *
 * @author SBND Techologies Ltd <info@sbnd.net>
 * @package cp.themes.modern.js
-* @version 7.0.4  
+* @version 7.0.6  
 */
 
 /**
@@ -77,6 +77,7 @@ var managerList = (function (){
 		},
 		changeAll : function (obj){//debugger;
 			var coll = obj.form[obj.value+'[]'];
+			if(coll && !coll.length) coll = [coll];
 			for(var i=0;i<coll.length;i++){
 				if(!coll[i].disabled){
 					coll[i].checked = obj.checked;

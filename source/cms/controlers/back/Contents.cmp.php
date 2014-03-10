@@ -2,7 +2,7 @@
 /**
 * SBND F&CMS - Framework & CMS for PHP developers
 *
-* Copyright (C) 1999 - 2013, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
+* Copyright (C) 1999 - 2014, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 *
 * @author SBND Techologies Ltd <info@sbnd.net>
 * @package cms.controlers.back
-* @version 7.0.4  
+* @version 7.0.6  
 */
 
 /**
@@ -151,8 +151,8 @@ class Contents extends Tree{
 	function ActionList(){
 		$this->mapping();
 		
-		$this->filter = new BasicFilter($this->prefix);
-		$this->filter->template($this->template_filter);
+		$this->filter = new BasicFilter($this->prefix, $this->filter_buttons, $this->template_filter);
+		
 		$this->filter->field('pname', array(
 			'text' => BASIC_LANGUAGE::init()->get('content_name_label'),
 			'filter' => " AND `name` LIKE '%{v}%' "
@@ -322,7 +322,7 @@ class Contents extends Tree{
 					$this->ctrl->changePublishTree($id, $l['code'], $this->getDataBuffer('publish_'.$l['code']));
 				}
 			}
-			$this->ctrl->clearMenuCash();
+			$this->ctrl->clearMenuCache();
 		}
 		return $id;
 	}	
@@ -333,7 +333,7 @@ class Contents extends Tree{
 	 * @return void
 	 */
 	function ActionOrder($id, $action = '', $criteria = ''){
-		$this->ctrl->clearMenuCash();
+		$this->ctrl->clearMenuCache();
 		
 		return parent::ActionOrder($id, $action, $criteria);
 	}
@@ -344,7 +344,7 @@ class Contents extends Tree{
 	 * @return void
 	 */
 	function ActionRemove($id, $rules = ''){
-		$this->ctrl->clearMenuCash();
+		$this->ctrl->clearMenuCache();
 		
 		return parent::ActionRemove($id, $rules);
 	}	

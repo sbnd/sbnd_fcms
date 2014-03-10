@@ -62,7 +62,6 @@ class Permitions extends CmsComponent{
 		
 		$this->addAction('__parent', 'goToParent', BASIC_LANGUAGE::init()->get('back'), 3);
 		
-		$this->setPrefix();
 		$this->system[] = '_parent_id';
 	}
 	/**
@@ -176,7 +175,8 @@ class Permitions extends CmsComponent{
 	function startManager(){
 		parent::startManager();
 		
-		$this->parent_data = $this->buildParent()->getRecord($this->parent_id);
+		$parent = $this->buildParent();
+		$this->parent_data = $parent->getRecord($this->parent_id);
 		
 		if($this->parent_id != -2 && $this->parent_data['order_id'] <= BASIC_USERS::init()->level()){
 			$this->delAction('save');
@@ -209,15 +209,6 @@ class Permitions extends CmsComponent{
 				)
 			));
 		}
-	}
-	/**
-	 * 
-	 * Set prefix
-	 * @access private
-	 */
-	protected function setPrefix(){
-		if($this->prefix == 'permitions')
-			$this->prefix = '';
 	}
 	/**
 	 * 

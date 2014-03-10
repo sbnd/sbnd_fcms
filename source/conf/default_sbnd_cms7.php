@@ -96,8 +96,6 @@ INSERT INTO `lingual` VALUES (486,'templates_import_form_action','Import from a 
 INSERT INTO `lingual` VALUES (487,'templates_export_action','Export to a File');
 INSERT INTO `lingual` VALUES (488,'templates_body_label','Content');
 INSERT INTO `lingual` VALUES (489,'template_import_label','Import from a File');
-INSERT INTO `lingual` VALUES (490,'upoad_error_1','Please, select a file');
-INSERT INTO `lingual` VALUES (491,'upoad_error_12','This file type is not supported. Select only the allowed types');
 INSERT INTO `lingual` VALUES (492,'templates_import_action','Import');
 INSERT INTO `lingual` VALUES (493,'module_class_not_exist','Such PHP Class does not exist into the BASIC Source Code');
 INSERT INTO `lingual` VALUES (494,'module_folder_not_exist','Such Folder does not Exist');
@@ -167,7 +165,6 @@ INSERT INTO `lingual` VALUES (557,'public','Public');
 INSERT INTO `lingual` VALUES (558,'target','Target');
 INSERT INTO `lingual` VALUES (559,'zip_code','Zip Code');
 INSERT INTO `lingual` VALUES (560,'City','City');
-INSERT INTO `lingual` VALUES (561,'countries','Countries');
 INSERT INTO `lingual` VALUES (562,'photo_of_the_institution','Photo');
 INSERT INTO `lingual` VALUES (563,'left_menu','Left Menu');
 INSERT INTO `lingual` VALUES (564,'top_menu','Top Menu');
@@ -193,7 +190,6 @@ INSERT INTO `lingual` VALUES (583,'user_message_required_settings','You Need To 
 
 INSERT INTO `lingual` VALUES (585,'invalid_sec_code','Invalid Security Code');
 INSERT INTO `lingual` VALUES (586,'cms_cmp_permitions','Permissions');
-INSERT INTO `lingual` VALUES (587,'cms_cmp_countries','Countries');
 INSERT INTO `lingual` VALUES (588,'cms_cmp_search_bar','Language Bar');
 INSERT INTO `lingual` VALUES (589,'cms_cmp_language_bar','Invalid character. You can use only "a-z", "A-Z" or "_" symbols for language\'s code.');
 INSERT INTO `lingual` VALUES (590,'profil_user_access_label',' Profile');
@@ -225,7 +221,6 @@ INSERT INTO `lingual` VALUES (633,'register_page','Registration Page');
 INSERT INTO `lingual` VALUES (634,'profile_page','Profile Page');
 INSERT INTO `lingual` VALUES (635,'site_login_total','Site Login Total');
 
-INSERT INTO `lingual` VALUES (636,'templates_mdate_label','Date ');
 INSERT INTO `lingual` VALUES (637,'site_login_none','Site Login Mode : none');
 INSERT INTO `lingual` VALUES (638,'site_login_box','Site Login Mode : box');
 INSERT INTO `lingual` VALUES (639,'file','Attachment');
@@ -240,11 +235,11 @@ INSERT INTO `lingual` VALUES (647,'upoad_error_4','No file was uploaded.');
 INSERT INTO `lingual` VALUES (648,'upoad_error_5','No exist file variable in request');
 INSERT INTO `lingual` VALUES (649,'upoad_error_10','No success reamed uploaded file.');
 INSERT INTO `lingual` VALUES (650,'upoad_error_11','The uploaded file exceeds the max field directive');
-INSERT INTO `lingual` VALUES (651,'upoad_error_12','The uploaded file type is no permited');
+INSERT INTO `lingual` VALUES (651,'upoad_error_12','This file type is not supported. Select only the allowed types');
 INSERT INTO `lingual` VALUES (652,'upoad_error_13','The uploaded file name is olready exist');
-INSERT INTO `lingual` VALUES (653,'upoad_error_14','The uploaded file can't copied in destination directory');
+INSERT INTO `lingual` VALUES (653,'upoad_error_14','The uploaded file can\'t copied in destination directory');
 INSERT INTO `lingual` VALUES (654,'upoad_error_15','Cannot removed file.');
-INSERT INTO `lingual` VALUES (655,'upoad_error_16','Upload folder does't exist and can't create it.');
+INSERT INTO `lingual` VALUES (655,'upoad_error_16','Upload folder does\'t exist and can't create it.');
 INSERT INTO `lingual` VALUES (656,'upoad_error_17','Cannot create temporary file.');
 INSERT INTO `lingual` VALUES (657,'browse','browse');
 
@@ -292,6 +287,7 @@ CREATE TABLE `modules` (
 INSERT INTO `modules` VALUES (1,'language-bar','LanguageBar','cms/controlers/front','','Language Bar',0,0,0,0,0);
 INSERT INTO `modules` VALUES (2,'search-bar','SearchBar','cms/controlers/front','','Search',0,1,0,0,0);
 INSERT INTO `modules` VALUES (3,'login','Login','cms/controlers/front','','Site Login',0,2,0,0,0);
+INSERT INTO `modules` VALUES (4,'tiny-editor','TinyMCEComponent','plugins/tinymce','a:2:{s:7:"manager";s:0:"";s:19:"prepareCofiguration";i:1;}','TinyMCE Editor',0,3,0,0,0);
 
 DROP TABLE IF EXISTS `pages`;
 CREATE TABLE `pages` (
@@ -333,8 +329,7 @@ CREATE TABLE `permitions` (
   PRIMARY KEY (`id`),
   KEY `foreign` (`_parent_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
-INSERT INTO `permitions` VALUES (1,'menu-positions','',-2);
-INSERT INTO `permitions` VALUES (2,'countries','',-2);
+INSERT INTO `permitions` VALUES (1,'menu-positions','',-2); 
 INSERT INTO `permitions` VALUES (3,'contents','',-2);
 INSERT INTO `permitions` VALUES (4,'settings','',-2);
 INSERT INTO `permitions` VALUES (5,'languages','',-2);
@@ -359,7 +354,7 @@ CREATE TABLE `profiles` (
   `password` varchar(32) NOT NULL DEFAULT '',
   `active` int(1) NOT NULL DEFAULT '0',
   `level` int(1) NOT NULL DEFAULT '0',
-  `last_log` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `last_log` int(15) NOT NULL DEFAULT '0',
   `session_id` varchar(32) NOT NULL DEFAULT '',
   `name` varchar(255) NOT NULL DEFAULT '',
   `address` varchar(255) NOT NULL DEFAULT '',
@@ -368,7 +363,6 @@ CREATE TABLE `profiles` (
   `avatar` varchar(255) NOT NULL DEFAULT '',
   `language` varchar(2) NOT NULL DEFAULT '',
   `page_max_rows` int(3) NOT NULL DEFAULT '0',
-  `countries` int(255) NOT NULL DEFAULT '0',
   `latitude` varchar(255) NOT NULL DEFAULT '',
   `longitude` varchar(255) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`),
@@ -377,7 +371,7 @@ CREATE TABLE `profiles` (
   KEY `active` (`active`),
   KEY `session_id` (`session_id`)
 ) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
-INSERT INTO `profiles` VALUES (1,'admin@admin.net','',1,1,'0000-00-00 00:00:00','','Admin','','','','','en',-1,0,'','');
+INSERT INTO `profiles` VALUES (1,'admin@admin.net','',1,1,0,'','Admin','','','','','en',-1,'','');
 
 DROP TABLE IF EXISTS `profiles_types`;
 CREATE TABLE `profiles_types` (
@@ -412,5 +406,6 @@ INSERT INTO `settings` VALUES (9,'SITE_EMAIL','support@sbnd.net',0,1);
 INSERT INTO `settings` VALUES (10,'SITE_THEME','themes/responsive/',0,1);
 INSERT INTO `settings` VALUES (11,'SITE_LOGIN_MODE','box',0,1);
 INSERT INTO `settings` VALUES (12,'SITE_TEMPLATE','base.tpl',0,1);
-INSERT INTO `settings` VALUES (21,'SITE_OPEN','',1,1);
-INSERT INTO `settings` VALUES (13,'SITE_THEME_NAME','responsive',0,1);
+INSERT INTO `settings` VALUES (13,'SITE_OPEN','',1,1);
+INSERT INTO `settings` VALUES (14,'SITE_THEME_NAME','responsive',0,1);
+INSERT INTO `settings` VALUES (15,'SITE_DATA_DELETE','archive',0,1);

@@ -2,7 +2,7 @@
 /**
 * SBND F&CMS - Framework & CMS for PHP developers
 *
-* Copyright (C) 1999 - 2013, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
+* Copyright (C) 1999 - 2014, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 *
 * @author SBND Techologies Ltd <info@sbnd.net>
 * @package cms.language
-* @version 7.0.4
+* @version 7.0.6
 */
 
 BASIC::init()->imported('language.mod');
@@ -29,7 +29,7 @@ BASIC::init()->imported('settings.mod', 'cms');
  * Use db table for save language's list. Use CMS_SETTINGS's variables 'SITE_CHARSET' and 'SITE_LANGUAGE'.  
  * 
  * @author Evgeni Baldzhiyski
- * @version 1.1
+ * @version 1.4
  * @since 10.08.2011
  * @package cms.languages
  */
@@ -142,22 +142,47 @@ class CMS_LANGUAGE extends BASIC_LANGUAGE {
 			
 			$err = BASIC_ERROR::init()->error();
 			if($err['code'] == 1146){
-				BASIC_SQL::init()->createTable('id', $this->container, "
-					`code` varchar(2) NOT NULL DEFAULT '',
-					`text` varchar(255) NOT NULL DEFAULT '',
-					`encode` varchar(100) NOT NULL DEFAULT 'utf-8',
-					`publish` int(1) NOT NULL DEFAULT '0',
-					`flag` varchar(255) DEFAULT NULL,
-					`order_id` int(11) NOT NULL DEFAULT '0',
-					UNIQUE KEY `code` (`code`),
-					KEY `publish` (`publish`)
-				");
+				$table = new BasicSqlTable();
+				$table->field('code', 'varchar', 2);
+				$table->field('text', 'varchar', 255);
+				$table->field('encode', 'varchar', 100, false, 'utf-8');
+				$table->field('publish', 'int', 1, false, 0);
+				$table->field('flag', 'varchar', 255);
+				$table->field('order_id', 'int', 11, false, 0);
 				
-				BASIC_ERROR::init()->clean();
-				$this->lload();
+				$table->key('code', 'code', true);
+				$table->key('publish', 'publish');
+				
+				if(CMS_SETTINGS::init()->get('SITE_DATA_DELETE') == 'archive'){
+					$table->field('_deleted', 'int', 1, false, 0);
+					$table->key('_deleted', 'code');
+				}
+				
+				if(BASIC_SQL::init()->createTable('id', $this->lcontainer, $table)){
+					BASIC_ERROR::init()->clean();
+					$this->lload();
+				}
+				return;
+			}elseif($err['code'] == 1054){
+				$table = new BasicSqlTable();
+				preg_match("/column( name)? '([^']+)'/", $err['message'], $match);
+				if(isset($match[2])){
+					$spl = explode(".", $match[2]);
+					$column_name = $spl[count($spl) - 1];
+					
+					if($column_name == '_deleted'){
+						$table->field($column_name, 'int', 1, false, 0);
+						$table->key('_deleted', 'code');
+					}else{
+						$table->field($column_name, 'varchar', 255);
+					}
+					if(BASIC_SQL::init()->createColumn($this->lcontainer, $table)){	
+						BASIC_ERROR::init()->clean();
+						$this->lload();
+					}
+				}
 				return;
 			}
-
 			while ($rdr->read()) {
 				$rdr->setItem('folder', $this->lfolder ? $this->lfolder : BASIC::init()->ini_get('upload_path'));
 				
@@ -165,6 +190,75 @@ class CMS_LANGUAGE extends BASIC_LANGUAGE {
  			}
 		}else{
 			throw new Exception(" The method '".$this->lmethod."' is not supported yet.");
+		}
+	}
+	/**
+	 * Load language with code $code
+	 *
+	 * If it's db method if there aren't column for this language it will be created
+	 * @access private
+	 * @param string [$code]
+	 * @access Protected
+	 */
+	protected function _load($code = null){
+		$lCode = ($code ? $code : $this->current);
+		$err = false;
+	
+		if($this->method == 'disk'){
+			$lFile = BASIC::init()->ini_get('root_path').$this->container."/".$lCode.".ini";
+			if(file_exists($lFile)){
+				$this->data = self::ini_parcer(file($lFile));
+			}else{
+				$err = true;
+			}
+		}else if($this->method == 'db'){
+			$rdr = BASIC_SQL::init()->read_exec(" SELECT `variable`, `value_".$lCode."` AS `value` FROM `".$this->container."` WHERE 1=1 ORDER BY `variable` ");
+	
+			$err = BASIC_ERROR::init()->error();
+			if($err['code'] == 1146){
+				$table = new BasicSqlTable();
+				
+				$table->field('variable', 'varchar', 255);
+				foreach ($this->language as $k => $v){
+					$table->field('value_'.$k, 'varchar', 500, true);
+				}
+				$table->key('variable', 'variable', true);
+				
+				if(BASIC_SQL::init()->createTable('id',$this->container, $table)){
+					$GLOBALS['BASIC_ERROR']->clean();
+					$this->_load();
+				}
+				return;
+			}elseif($err['code'] == 1054){
+				$table = new BasicSqlTable();
+				
+				preg_match("/column( name)? '([^']+)'/", $err['message'], $match);
+				if(isset($match[2])){
+					$spl = explode(".", $match[2]);
+					$match[2] = $spl[count($spl) - 1];
+					
+					if($match[2] == 'variable'){
+						$table->field('variable', 'varchar', 255, false);
+					}else if($match[2] == '_deleted'){
+						$table->field('_deleted', 'int', 1, false, 0);
+					}else{
+						$table->field($match[2], 'varchar', 500, true);
+					}
+					if(BASIC_SQL::init()->createColumn($this->container, $table)){
+						BASIC_ERROR::init()->clean();
+						$this->_load();
+					}
+				}
+				return;
+			}
+			if($rdr->num_rows() != 0){
+				while($rdr->read()){
+					$this->data[$rdr->field('variable')] = $rdr->field('value');
+				}
+				unset($rdr->items);
+			}
+		}else{
+			throw new Exception(" method <b>".$this->method."</b> load languages is not support!");
 		}
 	}
 }

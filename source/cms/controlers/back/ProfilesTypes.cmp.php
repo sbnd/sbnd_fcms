@@ -2,7 +2,7 @@
 /**
 * SBND F&CMS - Framework & CMS for PHP developers
 *
-* Copyright (C) 1999 - 2013, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
+* Copyright (C) 1999 - 2014, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 *
 * @author SBND Techologies Ltd <info@sbnd.net>
 * @package cms.controlers.back
-* @version 7.0.4
+* @version 7.0.6
 */
 
 
@@ -106,8 +106,8 @@ class ProfilesTypes extends CmsComponent {
 	 * @see DysplayComponent::SQL()
 	 * @return boolean
 	 */
-	function SQL(){
-		if(parent::SQL()){
+	function SQL($message = ''){
+		if(parent::SQL($message)){
 			$names = '';
 			
 			$values_gest = '';
@@ -156,7 +156,7 @@ class ProfilesTypes extends CmsComponent {
 	 * @see CmsComponent::ActionFormEdit()
 	 */
 	function ActionFormEdit($id){
-		if($this->id != -2 && $this->current_data['order_id']+1 <= BASIC_USERS::init()->level()){
+		if($this->id && $this->id != -2 && $this->current_data['order_id']+1 <= BASIC_USERS::init()->level()){
 			$this->updateField('title', array(
 				'attributes' => array(
 					'disabled' => true

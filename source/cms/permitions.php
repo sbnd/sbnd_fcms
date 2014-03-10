@@ -2,7 +2,7 @@
 /**
 * SBND F&CMS - Framework & CMS for PHP developers
 *
-* Copyright (C) 1999 - 2013, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
+* Copyright (C) 1999 - 2014, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 *
 * @author SBND Techologies Ltd <info@sbnd.net>
 * @package cms.permitions
-* @version 7.0.4
+* @version 7.0.6
 */
 
 
@@ -28,7 +28,7 @@
  * Permissions manager class
  * 
  * @author Evgeni Baldzhiyski
- * @version 0.3
+ * @version 0.4
  * @since 30.12.2011
  * @package cms.permitions
  */
@@ -60,8 +60,44 @@ class PermitionsManager implements PermitionInterface {
 			$this->perms[$level] = array();
 			
 			$rdr = BASIC_SQL::init()->read_exec(" SELECT * FROM `".$this->base."` WHERE `_parent_id` = ".$level." ");
-			while($rdr->read()){
+			
+			$err = BASIC_ERROR::init()->error();
+			if($err['code'] == 1146){
+				$table = new BasicSqlTable();
+				$table->field('cmp_name','varchar', 255);
+				$table->field('access','text');
+				$table->field('_parent_id','int', 11, false, 0);
 				
+				$table->key('_parent_id', 'foreign');
+				
+				if(BASIC_SQL::init()->createTable('id', $this->base, $table)){
+					$GLOBALS['BASIC_ERROR']->clean();
+					return $this->getPermission($cmp_owner, $perm_name, $level);
+				}
+				return false;
+			}elseif($err['code'] == 1054){
+				$table = new BasicSqlTable();
+				
+				preg_match("/column( name)? '([^']+)'/", $err['message'], $match);
+				if(isset($match[2])){
+					$spl = explode(".", $match[2]);
+					$match[2] = $spl[count($spl) - 1];
+					
+					if($match[2] == 'cmp_name'){
+						$table->field('cmp_name','varchar', 255);
+					}else if($match[2] == 'access'){
+						$table->field('access','text');
+					}else if($match[2] == '_parent_id'){
+						$table->field('_parent_id','int', 11, false, 0);
+					}
+					if(BASIC_SQL::init()->createColumn($this->base, $table)){	
+						BASIC_ERROR::init()->clean();
+						return $this->getPermission($cmp_owner, $perm_name, $level);
+					}
+				}
+				return false;
+			}
+			while($rdr->read()){
 				$this->perms[$level][$rdr->item('cmp_name')] = array();
 				
 				foreach(explode(",", $rdr->item('access')) as $v){

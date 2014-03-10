@@ -2,7 +2,7 @@
 /**
 * SBND F&CMS - Framework & CMS for PHP developers
 *
-* Copyright (C) 1999 - 2013, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
+* Copyright (C) 1999 - 2014, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 *
 * @author SBND Techologies Ltd <info@sbnd.net>
 * @package basic.users
-* @version 7.0.4
+* @version 7.0.6
 */
 
 
@@ -29,7 +29,7 @@
  * API to work with peremissions. Used from BASIC_USESR. 
  * 
  * @author Evgeni Baldzisky
- * @version 0.1 
+ * @version 0.5 
  * @since 01-10-2009
  * @package basic.users
  */
@@ -70,8 +70,6 @@ interface PermitionInterface {
  */
 class BASIC_USERS{
 	/**
-	 * 
-	 * 
 	 * The profiles database name.
 	 *
 	 * @var string
@@ -94,8 +92,6 @@ class BASIC_USERS{
 	 */
 	public $name_column  = 'email';
 	/**
-	 * 
-	 * 
 	 * Column name for user login password
 	 *
 	 * @var string
@@ -111,7 +107,6 @@ class BASIC_USERS{
 	 */
 	public $perm_column  = 'active';
 	/**
-	 * 
 	 * Column name for user's level. 
 	 *
 	 * @var string
@@ -178,21 +173,24 @@ class BASIC_USERS{
 	 */
 	public $rememberCookiePass = 'remember_my_data';
 	/**
+	 * Flag that will start usage devName and devPass in login system (cp or custom front-end user management).
 	 * 
-	 * Developer user
 	 * @var boolen
 	 * @access public
 	 */
-	public $devUse   = false;
+	public $devUse   = true;
 	/**
+	 * Username that will use in login system (cp or custom front-end user management) like 
+	 * miss login validations procedures.
 	 * 
-	 * developer username
 	 * @var string
 	 * @access public
 	 */
 	public $devName  = "";
 	/**
-	 * developer password
+	 * Pasword that will use in login system (cp or custom front-end user management) like 
+	 * miss login validations procedures.
+	 * 
 	 * @var string
 	 * @access public
 	 */
@@ -274,7 +272,7 @@ class BASIC_USERS{
 			}
 		}
 		if(BASIC_URL::init()->cookie($this->rememberCookieName) && BASIC_URL::init()->cookie($this->rememberCookiePass)){
-			$rdr = BASIC_SQL::init()->read_exec(" SELECT * FROM `".$this->db_table."` WHERE `".$this->key_column."` = " . (int)BASIC_URL::init()->cookie($this->rememberCookieName) ." ");
+			$rdr = $this->_select(" SELECT * FROM `".$this->db_table."` WHERE `".$this->key_column."` = " . (int)BASIC_URL::init()->cookie($this->rememberCookieName) ." ");
 			$rdr->read();
 			
 			if(md5($rdr->field($this->key_column).$rdr->field($this->pass_column).$this->userSysVar) != BASIC_URL::init()->cookie($this->rememberCookiePass)){
@@ -284,8 +282,12 @@ class BASIC_USERS{
 				BASIC_SESSION::init()->set($this->userDomainVar, BASIC::init()->ini_get('root_virtual'));				
 			}
 		}else{
-			$rdr = BASIC_SQL::init()->read_exec(" SELECT * FROM `".$this->db_table."` WHERE `".$this->key_column."` = " . $this->getUserId() ." ");
-			$rdr->read();
+			if($this->getUserId()){
+				$rdr = $this->_select(" SELECT * FROM `".$this->db_table."` WHERE `".$this->key_column."` = " . $this->getUserId() ." ");
+				$rdr->read();
+			}else{
+				return false;
+			}
 		}
         $this->bufferData = $rdr->getItems();
 			
@@ -338,7 +340,7 @@ class BASIC_USERS{
 		if($this->perm_column){
 			$query .= " AND `".$this->perm_column."` = 1 ";
 		}
-		$rdr = BASIC_SQL::init()->read_exec($query);
+		$rdr = $this->_select($query);
 		
 		$rdr->read();
         $this->bufferData = $rdr->getItems();
@@ -381,7 +383,7 @@ class BASIC_USERS{
 	protected function saveLastLog(){
 		BASIC_SESSION::init()->start();
 		
-		$time = @date('Y-m-d H:i:s', time());
+		$time = time(); 
 		
 		BASIC_SQL::init()->exec(" UPDATE `".$this->db_table."` SET 
 			`".$this->last_log_column."`= '".$time."'".
@@ -394,7 +396,7 @@ class BASIC_USERS{
 		if($res['code'] == 1054){
 			$query = BASIC_SQL::init()->getSql();
 			
-			BASIC_SQL::init()->createColumn($this->db_table,' `'.$this->last_log_column.'` datetime');
+			BASIC_SQL::init()->createColumn($this->db_table," `".$this->last_log_column."` int(15) NOT NULL default '0' ");
 			
 			if($this->session_id_column){
 				BASIC_SQL::init()->createColumn($this->db_table,' `'.$this->session_id_column.'` varchar(32)');
@@ -431,7 +433,7 @@ class BASIC_USERS{
 	 */
 	function autoLogin($id){
 		BASIC_SESSION::init()->start();
-		$rdr = BASIC_SQL::init()->read_exec(" SELECT * FROM `".$this->db_table."` WHERE `".$this->key_column."` = ".(int)$id." ");
+		$rdr = $this->_select(" SELECT * FROM `".$this->db_table."` WHERE `".$this->key_column."` = ".(int)$id." ");
 		$rdr->read();
 
 		if($rdr->num_rows() != 0){
@@ -581,7 +583,7 @@ class BASIC_USERS{
 	 */
 	function data($id = null){
 		if($id !== null && $id != $this->getUserId()){
-			$rdr = BASIC_SQL::init()->read_exec(" SELECT * FROM `".$this->db_table."` WHERE 1=1 AND `".$this->key_column."` = " . $id ." ");
+			$rdr = $this->_select(" SELECT * FROM `".$this->db_table."` WHERE 1=1 AND `".$this->key_column."` = " . $id ." ");
 				$rdr->read();
 			return $rdr->getItems();
 		}else{
@@ -623,6 +625,74 @@ class BASIC_USERS{
 		if($type == 'password') return md5($value);
 		
 		return '';
+	}
+	/**
+	 * @param string $query
+	 * @return ComponentReader
+	 */
+	protected function _select($query){
+		$rdr = BASIC_SQL::init()->read_exec($query);
+		
+		BASIC_ERROR::init()->reset();
+		$err = BASIC_ERROR::init()->error();
+		if($err['code'] == 1146){
+			if(BASIC_SQL::init()->createTable($this->key_column, $this->db_table, "
+				".$this->_selectBuilder($this->name_column).",
+				".$this->_selectBuilder($this->pass_column).",
+				".$this->_selectBuilder($this->perm_column).",
+				".$this->_selectBuilder($this->level_column).",
+				".$this->_selectBuilder($this->last_log_column).",
+				".$this->_selectBuilder($this->session_id_column).",
+				  UNIQUE KEY `login` (`".$this->name_column."`,`".$this->pass_column."`),
+				  UNIQUE KEY `email` (`".$this->name_column."`),
+				  KEY `active` (`".$this->perm_column."`),
+				  KEY `session_id` (`".$this->session_id_column."`)
+			")){
+				BASIC_ERROR::init()->clean();
+				return $this->_select($query);
+			}
+		}else if($err['code'] == 1054){
+			preg_match("/column( name)? '([^']+)'/", $err['message'], $match);
+			if(isset($match[2])){
+				$spl = explode(".", $match[2]);
+				$column_name = $spl[count($spl) - 1];
+				
+				if(BASIC_SQL::init()->createColumn($this->db_table, $this->_selectBuilder($column_name))){	
+					BASIC_ERROR::init()->clean();
+					return $this->_select($query);
+				}
+			}
+			return null;
+		}
+		return $rdr;
+	}
+	/**
+	 * @param string $column
+	 * @return string
+	 */
+	protected function _selectBuilder($column){
+		$data = "`".$column."` ";
+		
+		switch ($column){
+			case $this->name_column:
+				$data .= "varchar(255) NOT NULL DEFAULT '' ";
+				break;
+			case $this->pass_column:
+				$data .= "varchar(32) NOT NULL DEFAULT '' ";
+				break;
+			case $this->perm_column:
+				$data .= "int(1) NOT NULL DEFAULT '0' ";
+				break;
+			case $this->level_column:
+				$data .= "int(3) NOT NULL DEFAULT '0' ";
+				break;
+			case $this->last_log_column:
+				$data .= "int(15) NOT NULL DEFAULT '0' ";
+				break;
+			default:
+				$data .= "varchar(32) NOT NULL DEFAULT '' ";
+		}
+		return $data;
 	}
 	/**
 	 * 
@@ -672,6 +742,8 @@ class BASIC_USERS{
         }else{
         	if(!preg_match("/^.{8}.?/", $pass)){
         		$err = 2;
+        	}else if(preg_match("/[^0-9A-Za-z]+/", $pass)){ // if have any nonstandard symbol have not error
+        		$err = 0;
         	}else if(!preg_match("/[0-9]+/", $pass)){
         		$err = 3;
         	}else if(!preg_match("/[A-Z]+/", $pass)){

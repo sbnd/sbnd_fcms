@@ -2,7 +2,7 @@
 /**
 * SBND F&CMS - Framework & CMS for PHP developers
 *
-* Copyright (C) 1999 - 2013, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
+* Copyright (C) 1999 - 2014, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -18,9 +18,8 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 *
 * @author SBND Techologies Ltd <info@sbnd.net>
-* @version 7.0.4  
+* @version 7.0.6  
 */
-
 include_once "cms/install.php";
 if((@include_once "conf/site_config.php") === false){
 	require "install.php";
@@ -30,8 +29,9 @@ BASIC::init()->imported('form.mod', 'cms');
 BASIC::init()->imported('Builder.mod', 'cms/controlers/front');
 
 Builder::init(array(
-	'jQueryVersion' => '1.8.2',
-	'jQueryUIVersion' => '1.7.3.custom',
+	'jQueryVersion' => '1.7.min',
+	'jQueryUIVersion' => '1.8.16.custom.min',
+	'jQueryUITheme' => 'cupertino',//'ui-lightness',
 	'useJSSvincs' => true,
 
 	'loginMode' 	=> CMS_SETTINGS::init()->get('SITE_LOGIN_MODE'),

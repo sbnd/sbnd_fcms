@@ -2,7 +2,7 @@
 /**
 * SBND F&CMS - Framework & CMS for PHP developers
 *
-* Copyright (C) 1999 - 2013, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
+* Copyright (C) 1999 - 2014, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 *
 * @author SBND Techologies Ltd <info@sbnd.net>
-* @version 7.0.4  
+* @version 7.0.6  
 */
 
 
@@ -199,11 +199,11 @@ BASIC_USERS::init(array(
 	'permition_manager' => null
 ));
 
+BASIC_GENERATOR::init()->head('charset', 'meta', array('http-equiv' => "Content-Type", 'content' => "text/html; charset=utf-8"));
 BASIC_GENERATOR::init()->head("ptitle", 'title', null, 'SBND CMS 7 - Install');
 BASIC_GENERATOR::init()->head('style', 'style', null, "
 .install {
 	clear: both;
-	margin: 65px 0 0;
 	padding: 20px;
 	min-width: 944px;
 	background: #fff;
@@ -253,7 +253,7 @@ BASIC_GENERATOR::init()->head('style', 'style', null, "
 BASIC_TEMPLATE2::init(array(
 	'template_path' => CMS_SETTINGS::init()->get('SITE_THEME').'tpl'
 ))->createTemplate('cms-install.tpl', '<div class="frm install">
-	<table width="100%" border="0" cellspacing="0" cellpadding="0" class="frmcnt">
+	<table width="100%" border="0" cellspacing="0" cellpadding="0" class="frmcnt" name="install">
 		<!-- foreach(${fields},key,field) -->
 		<!-- if(${key} == "adminemail") -->
 			<tr><td colspan="2" style="height:20px;"></td></tr>
@@ -278,11 +278,20 @@ BASIC_TEMPLATE2::init(array(
 		</tr>		
 	</table>
 </div>');
+
+BASIC_TEMPLATE2::init()->set('PAGE_DATA', array(
+	'title' => 'Welcome to SBND F&CMS - Framework & CMS for PHP developers installation page. It is only 1 step installation process. Enjoy ! '
+));
+
+BASIC_LANGUAGE::init(array(
+	'method' => 'none'
+));
+
+try{Builder::init();}catch (Exception $e){}
 Builder::init(array(
-	'jQueryVersion' => '1.4.2',
-	'jQueryUIVersion' => '1.7.3.custom',
-	'useJSSvincs' => true,
-	'baseTemplate' 	=> 'base-login.tpl'
+	'jQueryVersion' => '1.8.2',
+	//'jQueryUIVersion' => '1.8.16.custom.min',
+	'useJSSvincs' => true
 ));
 
 $install = new BasicInstall();

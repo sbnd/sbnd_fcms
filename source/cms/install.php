@@ -2,7 +2,7 @@
 /**
 * SBND F&CMS - Framework & CMS for PHP developers
 *
-* Copyright (C) 1999 - 2013, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
+* Copyright (C) 1999 - 2014, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -19,14 +19,14 @@
 *
 * @author SBND Techologies Ltd <info@sbnd.net>
 * @package cms.install
-* @version 7.0.4
+* @version 7.0.6
 */
 try {
 	/**
 	 * SBND CMS
 	 * 
 	 * @author Evgeni Baldziyski
-	 * @version 7.0.4
+	 * @version 7.0.6
 	 */
 	include_once(preg_replace("/\/[^\/]+$/","",str_replace("\\","/",__file__))."/basic/basic.mod.php");
 	BASIC::init();
@@ -42,7 +42,7 @@ try {
 	BASIC::init()->imported('url.mod');
 	BASIC::init()->imported('cache.mod');
 	
-	BASIC::init()->imported('sql.mod');
+	BASIC::init()->imported('sql.mod', 'cms');
 	BASIC::init()->imported('generator.mod');
 	BASIC::init()->imported('template.mod');
 	BASIC::init()->imported('session.mod');
@@ -51,7 +51,7 @@ try {
 	// ######## Registrate Global Settings ######## //
 	
 	BASIC::init()->ini_set('core_version', 	'3.1');
-	BASIC::init()->ini_set('cms_version', 	'7.0.4');
+	BASIC::init()->ini_set('cms_version', 	'7.0.6');
 	
 	BASIC::init()->ini_set('cms_name', 		'SBND F&CMS');
 	BASIC::init()->ini_set('upload_path', 	'upload/');

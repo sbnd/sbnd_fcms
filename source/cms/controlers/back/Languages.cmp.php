@@ -2,7 +2,7 @@
 /**
 * SBND F&CMS - Framework & CMS for PHP developers
 *
-* Copyright (C) 1999 - 2013, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
+* Copyright (C) 1999 - 2014, SBND Technologies Ltd, Sofia, info@sbnd.net, http://sbnd.net
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 *
 * @author SBND Techologies Ltd <info@sbnd.net>
 * @package cms.controlers.back
-* @version 7.0.4  
+* @version 7.0.6  
 */
 
 /**
@@ -45,7 +45,7 @@ class Languages extends CmsComponent{
 	 * @access public
 	 * @var string
 	 */
-	public $upload_folder = '';
+	public $upload_folder = ''; 
 	/**
 	 * Main function - the constructor of the component
 	 * @access public
@@ -244,7 +244,7 @@ class Languages extends CmsComponent{
 	function ActionImport($id){
 		BASIC::init()->imported('upload.mod');
 		
-		$upload = new BasicUpload('flag');
+		$upload = new BasicUpload($this->prefix.'flag');
 		$upload->setType(array('ini', 'txt'));
 		$upload->maxSize = '100K';
 		
@@ -327,7 +327,7 @@ class Languages extends CmsComponent{
 		}
 		$this->model->child = array();
 		
-		Builder::init()->build('pages')->clearMenuCash();
+		Builder::init()->build('pages')->clearMenuCache();
 		
 		return parent::ActionRemove($ids,$riles);
 	}
@@ -352,7 +352,7 @@ class Languages extends CmsComponent{
 				$obj->setDataBuffer('value', $rdr->item('value_'.BASIC_LANGUAGE::init()->default_()).'('.$rdr->item('variable').')');
 				$obj->ActionSave($rdr->item('id'));
 			}
-			Builder::init()->build('pages')->clearMenuCash();
+			Builder::init()->build('pages')->clearMenuCache();
 		}
 		return $id;
 	}
