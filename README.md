@@ -74,7 +74,7 @@ Get:
 
 ## Getting started
  
-**System requirements**
+**System Requirements**
 
 - Apache HTTP Server version 2.0.0 or higher.
 - Configure the Apache server so that it uses the 'mod_rewrite' module.
