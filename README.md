@@ -133,7 +133,8 @@ Managing Themes and Templates - [http://fcms.sbnd.net/en/documentation/themes-an
 Managing Users and Roles - [http://fcms.sbnd.net/en/documentation/manage-users-roles/](http://fcms.sbnd.net/en/documentation/manage-users-roles/)
 
 Managing Components - [http://fcms.sbnd.net/en/documentation/manage-components/](http://fcms.sbnd.net/en/documentation/manage-components/)
+
 =========
 
 <br />
-**For more information: [http://fcms.sbnd.net/](http://fcms.sbnd.net/)**
+**For more information, see: [http://fcms.sbnd.net/](http://fcms.sbnd.net/)**
