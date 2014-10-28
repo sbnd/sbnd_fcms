@@ -11,37 +11,37 @@ SBND F&CMS is a modern object oriented PHP based framework that could be very he
 
 **- Fast Custom Programing.**
 Allows you to build and register your own components with custom functionality within minutes.
-The real power of SBND F&CMS is the easy creation of such Components, having custom functionality and in accordance with your concrete project needs. 
+The real power of SBND F&CMS is the easy creation of such components, having custom functionality and in accordance with your concrete project needs. 
 
 **- Using Native PHP Classes & Functions.**
-We were careful not to use any extensions that might bring difficulties for future upgrades or migrations. Of course, this guarantees the high performance too.
+We were careful not to use any extensions that might bring difficulties for future upgrades or migrations. This also guarantees the high performance.
 
-**- Extra Components For The Most Common Web Features.**
-Available for download and ready to use in your projects. Configured within minutes by following simple installation instructions.
+**- Extra Components for the Most Common Web Features.**
+SBND F&CMS is available for download and ready to use in your projects. It can be configured within minutes by following simple installation instructions.
 
 **- Built-In Database Engine.**
-Has built-in engine for generating database tables and fields based on the structure defined for the module, so no manually creation and database tables and fields are needed. No need of knowing SQL syntax.
+SBND F&CMS has a built-in engine for generating database tables and fields based on the structure defined for the module, so no manual creation of database tables and fields is needed and no need to know SQL syntax.
 
-**- Feed Data To Your Mobile App.**
-SBND F&CMS could be used as a Back End or a "feeder" for mobile or other "outside" applications. It could be configured to output data in XML or JSON format instead of the built-in HTML format.
+**- Feed Data to Your Mobile App.**
+SBND F&CMS could be used as a back end to feed mobile or other "outside" applications. It could be configured to output data in XML or JSON format instead of the built-in HTML format.
 
 **- Easy CMS Configuration.**
 All useful settings are put in one place only. No doubts of what they mean or are used for.
 
 **- User-Friendly Back End.**
-After years of experience with working with the explicit needs of our end clients we have created the most intuitive and simple interface to work with CMS and Components features. 
+We have years of experience working with our end clients and understanding their needs. We have put that experience into creating the most intuitive and simple interface to manage the CMS and Components features.
 
 **- Automated Multilingual Support.**
-Ability to add unlimited number of languages by simply entering a few fields from the Back End interface. SBND F&CMS takes care of multiplying the UI for any language added as well as updating all database tables accordingly.
+You can add an unlimited number of languages by simply entering a few fields from the back end interface. SBND F&CMS takes care of multiplying the UI for any language added as well as updating all database tables accordingly.
 
-**- Easy To Prepare Your Own Design.**
-Sample "responsive", "modern" and "mobile" design themes are available and could be very helpful in preparing custom designs ready to be used. These themes are compatible with most common web browsers and are scalable for mobile devices, tablets, etc.
+**- Easy to Prepare Your Own Design.**
+Sample "responsive", "modern" and "mobile" design themes are available and could be very helpful in preparing custom designs ready to be used. These themes are compatible with the most common web browsers and are scalable for mobile devices, tablets, etc.
 
 **- Template Engine.**
-Use a simple built-in Template Engine to apply Front End logic where needed.
+Use a simple built-in Template Engine to apply front end logic where needed.
 
-**- SEO Readiness.**
-The downloaded instance is ready for future SEO activities. It takes care of many SEO requirements in advance, such as user-friendly links, page titles, meta words, meta descriptions. The framework automatically generates required for the search engine robots files, sitemap files, files that help Google find the website, etc.
+**- Search Engine Optimization (SEO) Readiness.**
+After you deploy SBND F&CMS it is ready for future SEO activities. It takes care of many SEO requirements in advance, such as user-friendly links, page titles, meta words, meta descriptions. The framework automatically generates the files required for the search engine robots: sitemap files, files that help Google find the website, etc.
 
 
 =========
